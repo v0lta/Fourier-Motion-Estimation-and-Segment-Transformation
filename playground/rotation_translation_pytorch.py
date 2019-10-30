@@ -41,40 +41,24 @@ def complex_abs(ci):
 def complex_hadamard(ci1, ci2):
     # assert ci1.shape[-1] == 2, 'we require real and imaginary part.'
     # assert ci2.shape[-1] == 2, 'we require real and imaginary part.'
-    # x1 = ci1[..., 0]
-    # y1 = ci1[..., 1]
-    # x2 = ci2[..., 0]
-    # y2 = ci2[..., 1]
-
-    # multiplication in polar form is slow and numerically unstable in the backward pass.
-    # r1 = torch.sqrt(x1*x1 + y1*y1)
-    # phi1 = torch.atan2(y1, x1)
-    # r2 = torch.sqrt(x2*x2 + y2*y2)
-    # phi2 = torch.atan2(y2, x2)
-    # r = r1*r2
-    # phi = phi1 + phi2
-    # x = torch.cos(phi)*r
-    # y = torch.sin(phi)*r
-
-    # x = x1*x2 - y1*y2
-    # y = x1*y2 + y1*x2
-
     x1 = ci1[..., 0]
     y1 = ci1[..., 1]
-    r1 = torch.sqrt(x1*x1 + y1*y1)
-    phi1 = torch.atan2(y1, x1)
-
     x2 = ci2[..., 0]
     y2 = ci2[..., 1]
+
+    # multiplication in polar form is slow and numerically unstable in the backward pass.
+    # rx = x1*x2 - y1*y2
+    # ry = x1*y2 + y1*x2
+
+    r1 = torch.sqrt(x1*x1 + y1*y1)
+    phi1 = torch.atan2(y1, x1)
     r2 = torch.sqrt(x2*x2 + y2*y2)
     phi2 = torch.atan2(y2, x2)
-
     r = r1*r2
     phi = phi1 + phi2
-
-    x = torch.cos(phi)*r
-    y = torch.sin(phi)*r
-    return torch.stack([x, y], -1)
+    rx = torch.cos(phi)*r
+    ry = torch.sin(phi)*r
+    return torch.stack([rx, ry], -1)
 
 
 def get_coords(col_no: torch.tensor):

@@ -68,13 +68,12 @@ def fft_rotation(image, theta):
 
 
 if __name__ == '__main__':
+    import playground.numpy_registration as npreg
     face = misc.face()
-    I = face
-    # I = I[128:(512+128), 256:(512+256)]
-    I = np.mean(I, axis=-1)
+    mean_face = np.mean(face, axis=-1)
 
-    row_no, col_no = I.shape
-    I = np.pad(I, ((row_no//2, row_no//2), (col_no//2, col_no//2)))
+    row_no, col_no = mean_face.shape
+    I = np.pad(mean_face, ((row_no//2, row_no//2), (col_no//2, col_no//2)))
     m, n = I.shape
     plt.imshow(I)
     plt.show()
@@ -91,11 +90,11 @@ if __name__ == '__main__':
     plt.imshow(Itr)
     plt.show()
 
-    Itr = fft_rotation(Itr, theta=0.5)
-    plt.imshow(Itr)
+    Itr4 = fft_rotation(Itr, theta=0.5)
+    plt.imshow(Itr4)
     plt.show()
 
-    Itr = fft_rotation(Itr, theta=0.5)
+    Itr = fft_rotation(Itr4, theta=0.5)
     plt.imshow(Itr)
     plt.show()
 
@@ -104,3 +103,30 @@ if __name__ == '__main__':
     plt.show()
 
     print(np.mean(np.abs(I - Itr)))
+
+    # undo a translation using the registration function.
+    I_crop = mean_face[128:(512+128), 256:(512+256)]
+    rows, cols = I_crop.shape
+    I_crop = np.pad(I_crop, ((rows//2, rows//2), (cols//2, cols//2)))
+    rows, cols = I_crop.shape
+
+    Ict = fft_translation(I_crop, 0.1, 0.15)
+    # Ict = I_crop
+    Ictr = fft_rotation(Ict, theta=0.5)
+    # Ictr = Ict
+    _, _, a, t, t_raw = npreg.similarity(I_crop, Ictr)
+    print('angle, translation', a, t)
+    # transform to radians
+    a = a/180
+    I_ir = fft_rotation(Ictr, -a)
+    # I_rest = Ictr
+    _, _, a2, t2, t_raw2 = npreg.similarity(I_crop, I_ir)
+    I_it = fft_translation(I_ir, t_raw2[1]/rows, t_raw2[0]/cols)
+
+    print(a, a2, t, t2, t_raw, t_raw2)
+    plt.imshow(I_crop)
+    plt.show()
+    plt.imshow(Ictr)
+    plt.show()
+    plt.imshow(I_ir)
+    plt.show()
