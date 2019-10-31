@@ -243,8 +243,8 @@ if __name__ == "__main__":
     # plt.show()
 
     vx = torch.tensor(0.)
-    vy = torch.tensor(0.)
-    theta = torch.tensor(np.pi/3)
+    vy = torch.tensor(4.)
+    theta = torch.tensor(0.)
     translate = fft_affine_trans(imgt.unsqueeze(0).unsqueeze(0), vx, vy, theta)
     plt.imshow(translate[0, 0, :, :])
     plt.show()
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     res = skimage.feature.register_translation(img, img2)
 
     vx, vy, _ = register_translation(imgt, imgt2)
-    print(res, 'me', vx, vy)
+    print('registration result', res, 'me', vx, vy)
 
     angle, scale = register_rotation(imgt, translate[0, 0, :, :])
     print(angle, scale)

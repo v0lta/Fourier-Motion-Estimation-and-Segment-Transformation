@@ -68,7 +68,7 @@ def fft_rotation(image, theta):
 
 
 if __name__ == '__main__':
-    import playground.numpy_registration as npreg
+    import util.numpy_registration as npreg
     face = misc.face()
     mean_face = np.mean(face, axis=-1)
 

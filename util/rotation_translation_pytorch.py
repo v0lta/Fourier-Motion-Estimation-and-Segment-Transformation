@@ -137,7 +137,7 @@ def fft_rotation(image, theta):
 
 
 if __name__ == '__main__':
-    import playground.rotation_translation as np_rot_trans
+    import util.rotation_translation as np_rot_trans
 
     coords = get_coords(10)
     print('error coords', np.mean(np.abs(coords.numpy() - np_rot_trans.get_coords(10))))

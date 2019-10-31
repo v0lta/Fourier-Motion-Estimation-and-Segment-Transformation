@@ -243,7 +243,7 @@ def logpolar(image, angles=None, radii=None):
     y = radius * numpy.cos(theta) + center[1]
     output = numpy.empty_like(x)
     ndii.map_coordinates(image, [x, y], output=output)
-    return output, log_base
+    return output, log_base, x, y
 
 
 def highpass(shape):
