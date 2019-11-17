@@ -98,18 +98,20 @@ def torch_fft_ifft(image, phase_modification_matrix, transpose=False):
 
 
 def fft_translation(image, vx, vy):
+    """
+
+    :param image: [batch_size, height, width]
+    :param vx: [batch_size] %TODO
+    :param vy: [batch_size] %TODO
+    :return: Teh translated image
+    """
     # batch, height, width
     _, row_no, col_no = image.shape
-    if vx != 0:
-        phase_modification_x = fft_translation_matrix(row_no, col_no, vx)
-        image_trans_x = torch_fft_ifft(image, phase_modification_x)
-    else:
-        image_trans_x = image
-    if vy != 0:
-        phase_modification_y = fft_translation_matrix(col_no, row_no, vy)
-        image_trans_xy = torch_fft_ifft(image_trans_x, phase_modification_y, transpose=True)
-    else:
-        image_trans_xy = image_trans_x
+    phase_modification_x = fft_translation_matrix(row_no, col_no, vx)
+    image_trans_x = torch_fft_ifft(image, phase_modification_x)
+    phase_modification_y = fft_translation_matrix(col_no, row_no, vy)
+    image_trans_xy = torch_fft_ifft(image_trans_x, phase_modification_y, transpose=True)
+    image_trans_xy = image_trans_x
     return image_trans_xy
 
 

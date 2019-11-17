@@ -6,10 +6,12 @@ from util.rotation_translation_pytorch import complex_hadamard, fft_shift, compl
 def register_translation(image1, image2):
     """
     Register the circular translation of image1 with respect to image2 in pixels.
-    :param image1:
-    :param image2:
-    :return:
+    :param image1: Tensor of shape [batch_size, height, width]
+    :param image2: Tensor of shape [batch_size, height, width]
+    :return: vx, vy, gg_star
     """
+    assert image1.shape == image2.shape, 'shape of both images must be identical.'
+    batch_size = image1.shape[0]
     # compute the two dimensional fourier transforms.
     c_image1 = torch.stack([image1/255, torch.zeros_like(image1)], -1)
     c_image2 = torch.stack([image2/255, torch.zeros_like(image2)], -1)
@@ -18,7 +20,9 @@ def register_translation(image1, image2):
 
     gg_star = complex_hadamard(fft1, complex_conj(fft2))
     small_r = torch.ifft(gg_star, 2)
-    max_index_flat = torch.argmax(complex_abs(small_r))
+    abs_small_r = complex_abs(small_r)
+    abs_small_r = abs_small_r.reshape([batch_size, -1])
+    max_index_flat = torch.argmax(abs_small_r, dim=-1)
     vx = max_index_flat / image1.shape[-2]
     vy = max_index_flat % image1.shape[-2]
     return vx, vy, gg_star
@@ -27,8 +31,7 @@ def register_translation(image1, image2):
 def log_polar(image, angles=None, radii=None):
     """Return log-polar transformed image and log base.
     TODO: Fixme using https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
-    TODO: Why is the output flipped?
-    """
+    TODO: Why is the output flipped? """
     shape = image.shape[1:]
     center = shape[0] / 2, shape[1] / 2
     if angles is None:
@@ -36,7 +39,7 @@ def log_polar(image, angles=None, radii=None):
     if radii is None:
         radii = shape[1]
     theta = torch.empty((angles, radii), dtype=torch.float32)
-    theta.T[:] = torch.linspace(0, np.pi, angles) # * -1.0
+    theta.T[:] = torch.linspace(-np.pi/2, np.pi/2, angles) # * -1.0
     # d = radii
     x1 = shape[0] - center[0]
     x2 = shape[1] - center[1]
@@ -47,7 +50,7 @@ def log_polar(image, angles=None, radii=None):
                           torch.arange(radii).type(torch.float32)) - 1.0
     x = radius * torch.sin(theta) + center[0]
     y = radius * torch.cos(theta) + center[1]
-    # x = shape[0] - x
+    x = shape[0] - x
     # y = shape[1] - y
     grid = torch.stack([(x/shape[0] - 0.5)*2, -(y/shape[1] - 0.5)*2], dim=-1)
     output = torch.nn.functional.grid_sample(image.unsqueeze(0),
@@ -94,7 +97,9 @@ if __name__ == '__main__':
     plt.imshow(Ittr[0, :, :].numpy())
     plt.show()
 
-    vx, vy, ggstar = register_translation(It, Ittr)
+    It2 = torch.cat([It, It], 0)
+    Ittr2 = torch.cat([Ittr, It], 0)
+    vx, vy, ggstar = register_translation(It2, Ittr2)
     print(vx, vy)
 
     logpolarI, base_np, x, y = npreg.logpolar(I)
