@@ -57,7 +57,6 @@ class RegistrationCell(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    print('hallo')
     it = MovingMNISTAdvancedIterator()
     time = 10
     seq_np, motion_vectors = it.sample(5, time)
