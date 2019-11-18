@@ -101,15 +101,23 @@ def fft_translation(image, vx, vy):
     """
 
     :param image: [batch_size, height, width]
-    :param vx: [batch_size] %TODO
-    :param vy: [batch_size] %TODO
+    :param vx: [batch_size]
+    :param vy: [batch_size]
     :return: The translated image.
     """
     # batch, height, width
     _, row_no, col_no = image.shape
-    phase_modification_x = fft_translation_matrix(row_no, col_no, vx)
+    phase_mtx_lst = []
+    for single_velocity_x in vx:
+        phase_mtx_lst.append(fft_translation_matrix(row_no, col_no, single_velocity_x))
+    phase_modification_x = torch.stack(phase_mtx_lst, 0)
+    # phase_modification_x = fft_translation_matrix(row_no, col_no, vx)
     image_trans_x = torch_fft_ifft(image, phase_modification_x)
-    phase_modification_y = fft_translation_matrix(col_no, row_no, vy)
+    phase_mty_lst = []
+    for single_velocity_y in vy:
+        phase_mty_lst.append(fft_translation_matrix(col_no, row_no, single_velocity_y))
+    phase_modification_y = torch.stack(phase_mty_lst, 0)
+    # phase_modification_y = fft_translation_matrix(col_no, row_no, vy)
     image_trans_xy = torch_fft_ifft(image_trans_x, phase_modification_y, transpose=True)
     image_trans_xy = image_trans_xy
     return image_trans_xy
@@ -125,13 +133,21 @@ def fft_rotation(image, theta):
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
 
-    phase_modification_x = fft_shear_matrix(row_no, col_no, a)
+    phase_mod_x = []
+    for scalar_a in a:
+        phase_mod_x.append(fft_shear_matrix(row_no, col_no, scalar_a))
+    phase_modification_x = torch.stack(phase_mod_x, 0)
+    # phase_modification_x = fft_shear_matrix(row_no, col_no, a)
     image_shear_x = torch_fft_ifft(image, phase_modification_x)
 
-    phase_modification_xy = fft_shear_matrix(col_no, row_no, b)
+    phase_mod_xy = []
+    for scalar_b in b:
+        phase_mod_xy.append(fft_shear_matrix(col_no, row_no, scalar_b))
+    phase_modification_xy = torch.stack(phase_mod_xy, 0)
+    # phase_modification_xy = fft_shear_matrix(col_no, row_no, b)
     image_shear_xy = torch_fft_ifft(image_shear_x, phase_modification_xy, transpose=True)
 
-    phase_modification_xyz = fft_shear_matrix(row_no, col_no, a)
+    phase_modification_xyz = phase_modification_x
     image_shear_xyz = torch_fft_ifft(image_shear_xy, phase_modification_xyz)
     # remove the padding
     image_shear_xyz = image_shear_xyz[:, row_no_init//2:-row_no_init//2, col_no_init//2:-col_no_init//2]
@@ -156,40 +172,32 @@ if __name__ == '__main__':
     I = face
     # I = I[128:(512+128), 256:(512+256)]
     I = np.mean(I, axis=-1)
-
     rows, cols = I.shape
     I = np.pad(I, ((rows//2, rows//2), (cols//2, cols//2)))
     m, n = I.shape
     plt.imshow(I)
     plt.show()
-
     I_tensor = torch.tensor(I).unsqueeze(0)
     I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1), torch.tensor(0.15))
     I_array_trans = np_rot_trans.fft_translation(I, 0.1, 0.15)
     plt.imshow(I_tensor_trans[0, :, :].numpy())
     plt.show()
     print('error translation', np.mean(np.abs(I_tensor_trans[:, :].numpy() - I_array_trans)))
-
     Itr = fft_rotation(I_tensor_trans, theta=torch.tensor(0.5))
     Iar = np_rot_trans.fft_rotation(I_array_trans, theta=0.5)
     plt.imshow(Itr[0, :, :].numpy())
     plt.show()
     print('error rotation', np.mean(np.abs(Itr[0, :, :].numpy() - Iar)))
-
     Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
     plt.imshow(Itr[0, :, :].numpy())
     plt.show()
-
     Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
     plt.imshow(Itr[0, :, :].numpy())
     plt.show()
-
     Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
     plt.imshow(Itr[0, :, :].numpy())
     plt.show()
-
     Itr = fft_translation(Itr, vx=-.1, vy=-.15)
     plt.imshow(Itr[0, :, :].numpy())
     plt.show()
-
     print(np.mean(np.abs(I_tensor - Itr)[0, :, :].numpy()))

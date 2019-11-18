@@ -5,7 +5,7 @@ from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 
 
 def compute_2d_centroid(image):
-    image_norm = image/torch.sum(image)
+    image_norm = image/torch.sum(image.flatten(start_dim=1), dim=-1).unsqueeze(-1).unsqueeze(-1)
     x_max, y_max = image.shape[-2:]
     x = torch.arange(0, x_max)
     y = torch.arange(0, y_max)
@@ -16,7 +16,7 @@ def compute_2d_centroid(image):
     weight_Y = gridY*image_norm
     mean_x = torch.sum(weight_X.flatten(start_dim=1), dim=-1)
     mean_y = torch.sum(weight_Y.flatten(start_dim=1), dim=-1)
-    return torch.stack([mean_x, mean_y])
+    return torch.stack([mean_x, mean_y], dim=-1)
 
 
 if __name__ == '__main__':
@@ -28,37 +28,49 @@ if __name__ == '__main__':
     seq = seq[:, 0, :, :].unsqueeze(1)
 
     seq0 = seq[0, :, :, :]
+    seq5 = seq[5, :, :, :]
     seq10 = seq[9, :, :, :]
 
-    cent0 = compute_2d_centroid(seq0)
-    print('seq0 centroid', cent0)
-    cent10 = compute_2d_centroid(seq10)
-    print('seq10m centroid', cent10)
+    img_stack = torch.cat([seq0, seq5, seq10], 0)
 
-    plt.imshow(seq0[0])
-    plt.plot(cent0[1], cent0[0], 'r.')
+    cent = compute_2d_centroid(img_stack)
+    print('seq0 centroid', cent[0])
+    print('seq10m centroid', cent[2])
+
+    plt.imshow(img_stack[0])
+    plt.plot(cent[0][1], cent[0][0], 'r.')
     plt.show()
-    plt.imshow(seq10[0])
-    plt.plot(cent10[1], cent10[0], 'r.')
+    plt.imshow(img_stack[2])
+    plt.plot(cent[2][1], cent[2][0], 'r.')
     plt.show()
 
-    rot_seq0 = fft_rotation(seq10, torch.tensor(0.25))
-    rot_cent10 = compute_2d_centroid(rot_seq0)
-    print('rotated centroid', rot_cent10)
+    rot_img_stack = fft_rotation(seq10, torch.tensor([0.1, 0.2, 0.3]))
+    rot_rot_img_stack_cent = compute_2d_centroid(rot_img_stack)
+    print('rotated centroid', rot_rot_img_stack_cent[-1])
     # plt.imshow(rot_seq0[0])
     # plt.plot(rot_cent10[1], rot_cent10[0], 'r.')
     plt.show()
 
     # displacement
-    displacement = cent10 - rot_cent10
+    displacement = cent - rot_rot_img_stack_cent
     print('pixel displacement', displacement)
     displacement = displacement/64.
     print('displacement', displacement)
-    trans_rot_seq0 = fft_translation(rot_seq0, displacement[1], displacement[0])
-    trans_rot_cent10 = compute_2d_centroid(trans_rot_seq0)
-    print(trans_rot_cent10)
-    plt.imshow(trans_rot_seq0[0])
-    plt.plot(trans_rot_cent10[1], trans_rot_cent10[0], 'r.')
+
+    trans_rot_img_stack = fft_translation(rot_img_stack, displacement[:, 1], displacement[:, 0])
+    trans_rot_img_stack_cent = compute_2d_centroid(trans_rot_img_stack)
+    print(trans_rot_img_stack_cent[-1])
+    plt.imshow(trans_rot_img_stack[-1])
+    plt.plot(trans_rot_img_stack_cent[-1][1], trans_rot_img_stack_cent[-1][0], 'r.')
     plt.show()
-    print('error', cent10 - trans_rot_cent10)
+    print('error', cent[2] - trans_rot_img_stack_cent[2])
+
+
+    plt.imshow(img_stack[1])
+    plt.plot(cent[1][1], cent[1][0], 'r.')
+    plt.show()
+    plt.imshow(trans_rot_img_stack[1])
+    plt.plot(trans_rot_img_stack_cent[1][1], trans_rot_img_stack_cent[1][0], 'r.')
+    plt.show()
+
 
