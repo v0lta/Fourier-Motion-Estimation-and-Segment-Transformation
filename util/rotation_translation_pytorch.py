@@ -111,7 +111,7 @@ def fft_translation(image, vx, vy):
     image_trans_x = torch_fft_ifft(image, phase_modification_x)
     phase_modification_y = fft_translation_matrix(col_no, row_no, vy)
     image_trans_xy = torch_fft_ifft(image_trans_x, phase_modification_y, transpose=True)
-    image_trans_xy = image_trans_x
+    image_trans_xy = image_trans_xy
     return image_trans_xy
 
 
