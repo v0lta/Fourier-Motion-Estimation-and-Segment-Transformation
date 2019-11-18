@@ -45,9 +45,9 @@ class RegistrationCell(torch.nn.Module):
         state_vec, prev_img = state
         vy, vx, _ = register_translation(img, prev_img)
         # print(vx, vy)
-        if vx.numpy()[0] > w/2.0:
+        if vx.cpu().numpy()[0] > w/2.0:
             vx = vx - w
-        if vy.numpy()[0] > h/2.0:
+        if vy.cpu().numpy()[0] > h/2.0:
             vy = vy - h
         # print(vx, vy)
         vx = vx/w

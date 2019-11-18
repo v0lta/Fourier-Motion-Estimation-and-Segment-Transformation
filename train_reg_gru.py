@@ -4,17 +4,19 @@ import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter
 from cells.registration_cell import RegistrationCell
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
+from torch.utils.tensorboard import SummaryWriter
 
 
 it = MovingMNISTAdvancedIterator()
-time = 6
-context_time = 2
-pred_time = 4
-state_size = 20
+batch_size = 50
+time = 10
+context_time = 4
+pred_time = 6
+state_size = 200
 cell = RegistrationCell(state_size=state_size)
-iterations = 4000
-opt = torch.optim.Adam(cell.parameters(), lr=0.0001)
-grad_clip_norm = 1000
+iterations = 10000
+opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
+grad_clip_norm = 8000
 criterion = torch.nn.MSELoss()
 
 loss_lst = []
@@ -25,13 +27,13 @@ with torch.autograd.detect_anomaly():
             # training loop
             opt.zero_grad()
 
-            seq_np, motion_vectors = it.sample(5, time)
+            seq_np, motion_vectors = it.sample(batch_size, time)
             seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32))
             # seq = seq[:, 0, :, :].unsqueeze(1)
             context = seq[:context_time, :, :, :]
             prediction = seq[context_time:, :, :, :]
             out_lst = []
-            state = (torch.zeros([5, state_size]), context[0, :, :, :])
+            state = (torch.zeros([batch_size, state_size]), context[0, :, :, :])
             img = context[0, :, :, :]
             for t in range(1, context_time):
                 # print(t)
