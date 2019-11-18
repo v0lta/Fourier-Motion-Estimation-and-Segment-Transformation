@@ -61,3 +61,4 @@ if __name__ == '__main__':
     plt.plot(trans_rot_cent10[1], trans_rot_cent10[0], 'r.')
     plt.show()
     print('error', cent10 - trans_rot_cent10)
+

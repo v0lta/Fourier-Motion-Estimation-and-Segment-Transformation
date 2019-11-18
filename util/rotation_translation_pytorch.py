@@ -103,7 +103,7 @@ def fft_translation(image, vx, vy):
     :param image: [batch_size, height, width]
     :param vx: [batch_size] %TODO
     :param vy: [batch_size] %TODO
-    :return: Teh translated image
+    :return: The translated image.
     """
     # batch, height, width
     _, row_no, col_no = image.shape
