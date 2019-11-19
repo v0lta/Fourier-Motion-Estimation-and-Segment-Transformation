@@ -1,3 +1,4 @@
+import pickle
 import time as pytime
 import torch
 import numpy as np
@@ -15,8 +16,8 @@ context_time = 5
 pred_time = 10
 state_size = 200
 cell = RegistrationCell(state_size=state_size).cuda()
-iterations = 3000
-opt = torch.optim.Adam(cell.parameters(), lr=0.000005)
+iterations = 10000
+opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
 grad_clip_norm = 8000
 criterion = torch.nn.MSELoss()
 
@@ -80,3 +81,6 @@ for vno in range(batch_size):
     video_writer = VideoWriter(height=64, width=128)
     video_writer.write_video(write[:, vno, :, :], filename='./test_vids/net_out' + str(vno) + '.mp4')
     plt.close()
+
+# pickle the cell
+pickle.dump(cell, open('cell.pkl', 'wb'))

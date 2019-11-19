@@ -56,9 +56,8 @@ def log_polar(image, angles=None, radii=None):
     radius = torch.empty_like(theta)
     radius[:] = torch.pow(log_base,
                           torch.arange(radii).type(torch.float32)) - 1
-
-    x = radius *(shape[0]/shape[1])* torch.cos(theta) + center[0]
-    y = radius *(shape[1]/shape[0])* torch.sin(theta) + center[1]
+    x = radius * (shape[0]/shape[1]) * torch.cos(theta) + center[0]
+    y = radius * (shape[1]/shape[0]) * torch.sin(theta) + center[1]
     # print(x)
     # x = shape[0] - x
     y = shape[1] - y
