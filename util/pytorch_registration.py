@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     It = torch.tensor(I.astype(np.float32)).unsqueeze(0)
     # Itt = tr.fft_translation(It, torch.tensor(0.1), torch.tensor(0.15))
-    Ittr = tr.fft_rotation(It, torch.tensor(0.1))
+    Ittr = tr.fft_rotation(It, torch.tensor(0.1).unsqueeze(0))
 
     plt.imshow(Ittr[0, :, :].numpy())
     plt.show()
