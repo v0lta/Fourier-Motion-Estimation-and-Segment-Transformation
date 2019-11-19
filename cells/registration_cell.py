@@ -9,7 +9,7 @@ from util.write_movie import VideoWriter
 
 class RegistrationCell(torch.nn.Module):
     """
-    A fourier Domain registration and prediction cell.
+    A fourier Domain fft-prediction RNN correction cell.
     """
 
     def __init__(self, state_size=100, net_weight_size_lst=None, learn_param_net=True,
@@ -39,6 +39,11 @@ class RegistrationCell(torch.nn.Module):
         self.learn_param_net = learn_param_net
 
     def forward(self, img, state):
+        """
+        :param img: [batch_size, 64, 64] image tensor
+        :param state: ([batch_size, state
+        :return:
+        """
         w, h = img.shape[-2:]
         w = w*1.0
         h = h*1.0
@@ -73,13 +78,62 @@ class RegistrationCell(torch.nn.Module):
         return pred_img, new_state
 
 
+class VelocityEstimationCell(torch.nn.Module):
+    """
+    A fourier Domain fft-prediction RNN correction cell.
+    """
+    def __init__(self, cnn_depth_lst, state_size=100, gru=True):
+        super().__init__()
+        self.cnn_depth_lst = cnn_depth_lst
+        self.state_size = state_size
+
+        cnn_lst = []
+        activation = torch.nn.ReLU()
+        for cnn_depth in range(cnn_depth_lst):
+            cnn_lst.append(torch.nn.Conv2d(2, cnn_depth, kernel_size=3, padding=3))
+            cnn_lst.append(activation)
+        self.cnn = torch.nn.Sequential(cnn_lst)
+
+        self.state_net = []
+        in_size = 2 + self.state_size  # 4 + self.state_size
+        self.gru = gru
+        if self.gru is True:
+            self.state_net = torch.nn.GRUCell(in_size, state_size)
+        self.parameter_projection = torch.nn.Linear(self.state_size, 4)
+
+    def forward(self, img, state):
+        """
+        :param img: [batch_size, 64, 64] image tensor
+        :param state: ([batch_size, state
+        :return:
+        """
+
+        state_vec, prev_img = state
+        cnn_out = self.cnn(torch.cat([img, prev_img], 0))
+
+
+        net_in = torch.cat([vx.unsqueeze(-1),
+                            vy.unsqueeze(-1),
+                            state_vec], dim=-1)
+        new_state_vec = self.state_net(net_in, state_vec)
+        param_out = self.parameter_projection(new_state_vec)
+        vvx, vvy, vrx, vry = torch.unbind(param_out, dim=-1)
+        vx += vvx
+        vy += vvy
+        state_vec = new_state_vec
+        pred_img = fft_translation(img, vx, vy)
+        new_state = (state_vec, img)
+        return pred_img, new_state
+
+
 if __name__ == '__main__':
     it = MovingMNISTAdvancedIterator()
     time = 10
     seq_np, motion_vectors = it.sample(5, time)
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32))
     seq = seq[:, 0, :, :].unsqueeze(1)
-    cell = RegistrationCell(learn_param_net=False)
+    # cell = RegistrationCell(learn_param_net=False)
+    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
     out_lst = []
     zero_state = (torch.zeros([1, 100]), seq[0, :, :, :])
     img = seq[1, :, :, :]

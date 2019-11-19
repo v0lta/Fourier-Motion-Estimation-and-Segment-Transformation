@@ -1,22 +1,22 @@
-import time
+import time as pytime
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter
-from cells.registration_cell import RegistrationCell
+from cells.registration_cell import RegistrationCell, VelocityEstimationCell
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
 
 it = MovingMNISTAdvancedIterator()
-batch_size = 50
+batch_size = 150
 time = 15
 context_time = 5
 pred_time = 10
 state_size = 200
 cell = RegistrationCell(state_size=state_size).cuda()
-iterations = 10000
-opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
+iterations = 3000
+opt = torch.optim.Adam(cell.parameters(), lr=0.000005)
 grad_clip_norm = 8000
 criterion = torch.nn.MSELoss()
 
@@ -26,6 +26,7 @@ grad_lst = []
 #with torch.autograd.detect_anomaly():
 for i in range(iterations):
         # training loop
+        time_start = pytime.time()
         opt.zero_grad()
         seq_np, motion_vectors = it.sample(batch_size, time)
         seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
@@ -61,7 +62,8 @@ for i in range(iterations):
 
         # apply gradients
         opt.step()
-        print(i, loss.detach().cpu().numpy(), total_norm)
+        time_end = pytime.time() - time_start
+        print('it', i, 'mse', loss.detach().cpu().numpy(), 'grad-norm', total_norm, 'it-time [s]', time_end)
         loss_lst.append(loss.detach().cpu().numpy())
         grad_lst.append(total_norm)
 
@@ -70,8 +72,8 @@ plt.show()
 plt.plot(grad_lst)
 plt.show()
 
-net_in_gt = np.concatenate([context.detach().numpy(), prediction.detach().numpy()], 0)
-net_out = np.concatenate([context.detach().numpy(), pred_vid.detach().numpy()], 0)
+net_in_gt = np.concatenate([context.detach().cpu().numpy(), prediction.detach().cpu().numpy()], 0)
+net_out = np.concatenate([context.detach().cpu().numpy(), pred_vid.detach().cpu().numpy()], 0)
 write = np.concatenate([net_out, net_in_gt], -1)
 write = np.abs(write)/np.max(np.abs(write))
 for vno in range(batch_size):

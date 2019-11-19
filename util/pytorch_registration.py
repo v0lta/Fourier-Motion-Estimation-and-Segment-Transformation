@@ -28,10 +28,42 @@ def register_translation(image1, image2):
     return vx, vy, gg_star
 
 
+# def log_polar(image, angles=None, radii=None):
+#     """Return log-polar transformed image and log base.
+#     TODO: Fixme using https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
+#     TODO: Why is the output flipped? """
+#     shape = image.shape[1:]
+#     center = shape[0] / 2, shape[1] / 2
+#     if angles is None:
+#         angles = shape[0]
+#     if radii is None:
+#         radii = shape[1]
+#     theta = torch.empty((angles, radii), dtype=torch.float32)
+#     theta.T[:] = torch.linspace(-np.pi/2, np.pi/2, angles) # * -1.0
+#     # d = radii
+#     x1 = shape[0] - center[0]
+#     x2 = shape[1] - center[1]
+#     d = np.sqrt(x1*x1 + x2*x2)
+#     log_base = torch.tensor(10.0 ** (np.log10(d) / radii))
+#     radius = torch.empty_like(theta)
+#     radius[:] = torch.pow(log_base,
+#                           torch.arange(radii).type(torch.float32)) - 1.0
+#     x = radius * torch.sin(theta) + center[0]
+#     y = radius * torch.cos(theta) + center[1]
+#     x = shape[0] - x
+#     # y = shape[1] - y
+#     grid = torch.stack([(x/shape[0] - 0.5)*2, -(y/shape[1] - 0.5)*2], dim=-1)
+#     output = torch.nn.functional.grid_sample(image.unsqueeze(0),
+#                                              grid.unsqueeze(0))
+#     # plt.imshow(output[0, 0, :, :].numpy()); plt.show()
+#     return output, log_base
+
+
 def log_polar(image, angles=None, radii=None):
     """Return log-polar transformed image and log base.
     TODO: Fixme using https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
     TODO: Why is the output flipped? """
+    print(image.shape)
     shape = image.shape[1:]
     center = shape[0] / 2, shape[1] / 2
     if angles is None:
@@ -39,7 +71,7 @@ def log_polar(image, angles=None, radii=None):
     if radii is None:
         radii = shape[1]
     theta = torch.empty((angles, radii), dtype=torch.float32)
-    theta.T[:] = torch.linspace(-np.pi/2, np.pi/2, angles) # * -1.0
+    theta.T[:] = torch.linspace(0,np.pi, angles) # * -1.0
     # d = radii
     x1 = shape[0] - center[0]
     x2 = shape[1] - center[1]
@@ -47,12 +79,15 @@ def log_polar(image, angles=None, radii=None):
     log_base = torch.tensor(10.0 ** (np.log10(d) / radii))
     radius = torch.empty_like(theta)
     radius[:] = torch.pow(log_base,
-                          torch.arange(radii).type(torch.float32)) - 1.0
-    x = radius * torch.sin(theta) + center[0]
-    y = radius * torch.cos(theta) + center[1]
-    x = shape[0] - x
-    # y = shape[1] - y
-    grid = torch.stack([(x/shape[0] - 0.5)*2, -(y/shape[1] - 0.5)*2], dim=-1)
+                          torch.arange(radii).type(torch.float32)) - 1
+    # x = radius * torch.cos(theta+math.pi) + center[0]
+    # y = radius * torch.sin(-theta+math.pi) + center[1]
+    x = radius *(shape[0]/shape[1])* torch.cos(theta) + center[0]
+    y = radius *(shape[1]/shape[0])* torch.sin(theta) + center[1]
+    # print(x)
+    # x = shape[0] - x
+    y = shape[1] - y
+    grid = torch.stack([(x/shape[0] - 0.5)*2, (y/shape[1] - 0.5)*2], dim=-1)
     output = torch.nn.functional.grid_sample(image.unsqueeze(0),
                                              grid.unsqueeze(0))
     # plt.imshow(output[0, 0, :, :].numpy()); plt.show()
