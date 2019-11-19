@@ -15,10 +15,12 @@ class VideoWriter(object):
     def _init(self):
         self.im = plt.imshow(self.data_array[0])
         self.im.set_data(self.data_array[0])
+        self.text = self.ax.text(-10, 10, '')
         return [self.im]
 
     def _animate(self, i):
         self.im.set_data(self.data_array[i])
+        self.text.set_text(str(i))
         return [self.im]
 
     def write_video(self, data_array=None, filename='basic_animation.mp4'):

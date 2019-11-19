@@ -62,14 +62,14 @@ def complex_hadamard(ci1, ci2):
 
 
 def get_coords(col_no: torch.tensor):
-    coords = torch.linspace(-np.fix(col_no/2,), np.ceil(col_no/2)-1, steps=col_no)
+    coords = torch.linspace(-np.fix(col_no/2,), np.ceil(col_no/2)-1, steps=col_no).cuda()
     shift = fft_shift(coords)
     return shift
 
 
 def fft_shear_matrix(row_no, col_no, angle):
     shift = get_coords(col_no)
-    i_vec = torch.tensor(range(0, row_no))-np.floor(row_no/2.)
+    i_vec = torch.tensor(range(0, row_no))-np.floor(row_no/2.).cuda()
     c_vec = -2*np.pi*shift*angle/row_no
     shear_mat = exp_i_phi(outer(i_vec, c_vec))
     return shear_mat
