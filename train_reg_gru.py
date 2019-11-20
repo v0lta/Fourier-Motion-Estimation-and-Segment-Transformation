@@ -16,9 +16,9 @@ context_time = 5
 pred_time = 10
 state_size = 200
 cell = RegistrationCell(state_size=state_size).cuda()
-iterations = 10000
+iterations = 3000
 opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
-grad_clip_norm = 8000
+grad_clip_norm = 10000
 criterion = torch.nn.MSELoss()
 
 loss_lst = []

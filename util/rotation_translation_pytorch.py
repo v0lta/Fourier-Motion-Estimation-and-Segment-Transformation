@@ -157,16 +157,16 @@ def fft_rotation(image, theta):
 if __name__ == '__main__':
     import util.rotation_translation as np_rot_trans
 
-    coords = get_coords(10)
-    print('error coords', np.mean(np.abs(coords.numpy() - np_rot_trans.get_coords(10))))
-
-    shear_mat = fft_shear_matrix(10, 10, .3)
-    shear_mat = shear_mat[:, :, 0].numpy() + 1j*shear_mat[:, :, 1].numpy()
-    print('error shear', np.mean(np.abs(shear_mat - np_rot_trans.fft_shear_matrix(10, 10, .3))))
-
-    trans_mat = fft_translation_matrix(10, 10, .1)
-    trans_mat = trans_mat[:, :, 0].numpy() + 1j*trans_mat[:, :, 1].numpy()
-    print('error translation matrix', np.mean(np.abs(trans_mat - np_rot_trans.fft_translation_matrix(10, 10, .1))))
+    # coords = get_coords(10)
+    # print('error coords', np.mean(np.abs(coords.cpu().numpy() - np_rot_trans.get_coords(10))))
+    #
+    # shear_mat = fft_shear_matrix(torch.tensor(10), torch.tensor(10), torch.tensor(.3))
+    # shear_mat = shear_mat[:, :, 0].numpy() + 1j*shear_mat[:, :, 1].numpy()
+    # print('error shear', np.mean(np.abs(shear_mat - np_rot_trans.fft_shear_matrix(10, 10, .3))))
+    #
+    # trans_mat = fft_translation_matrix(10, 10, .1)
+    # trans_mat = trans_mat[:, :, 0].numpy() + 1j*trans_mat[:, :, 1].numpy()
+    # print('error translation matrix', np.mean(np.abs(trans_mat - np_rot_trans.fft_translation_matrix(10, 10, .1))))
 
     face = misc.face()
     I = face
@@ -178,7 +178,8 @@ if __name__ == '__main__':
     plt.imshow(I)
     plt.show()
     I_tensor = torch.tensor(I).unsqueeze(0)
-    I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1), torch.tensor(0.15))
+    I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1).unsqueeze(0),
+                                     torch.tensor(0.15).unsqueeze(0))
     I_array_trans = np_rot_trans.fft_translation(I, 0.1, 0.15)
     plt.imshow(I_tensor_trans[0, :, :].numpy())
     plt.show()

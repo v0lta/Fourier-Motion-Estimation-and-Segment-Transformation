@@ -3,6 +3,7 @@ import numpy as np
 from util.rotation_translation_pytorch import fft_translation
 from util.pytorch_registration import register_translation
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
+from util.centroid import compute_2d_centroid
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter
 
@@ -24,7 +25,7 @@ class RegistrationCell(torch.nn.Module):
 
         self.state_net = []
         activation = torch.nn.Tanh()
-        in_size = 2 + self.state_size # 4 + self.state_size
+        in_size = 4 + self.state_size # 4 + self.state_size
         self.gru = gru
         if self.gru is True:
             self.state_net = torch.nn.GRUCell(in_size, state_size)
@@ -48,6 +49,9 @@ class RegistrationCell(torch.nn.Module):
         w = w*1.0
         h = h*1.0
         state_vec, prev_img = state
+        centroid = compute_2d_centroid(img)
+        cx = centroid[:, 0]
+        cy = centroid[:, 1]
         vy, vx, _ = register_translation(img, prev_img)
         # print(vx, vy)
         if vx.cpu().numpy()[0] > w/2.0:
@@ -59,7 +63,9 @@ class RegistrationCell(torch.nn.Module):
         vy = vy/h
         # print(vx, vy)
         if self.learn_param_net:
-            net_in = torch.cat([vx.unsqueeze(-1),
+            net_in = torch.cat([cx.unsqueeze(-1),
+                                cy.unsqueeze(-1),
+                                vx.unsqueeze(-1),
                                 vy.unsqueeze(-1),
                                 state_vec], dim=-1)
             if self.gru:
@@ -130,12 +136,12 @@ if __name__ == '__main__':
     it = MovingMNISTAdvancedIterator()
     time = 10
     seq_np, motion_vectors = it.sample(5, time)
-    seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32))
+    seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
-    # cell = RegistrationCell(learn_param_net=False)
-    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
+    cell = RegistrationCell(learn_param_net=True).cuda()
+    # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
     out_lst = []
-    zero_state = (torch.zeros([1, 100]), seq[0, :, :, :])
+    zero_state = (torch.zeros([1, 100]).cuda(), seq[0, :, :, :])
     img = seq[1, :, :, :]
     for t in range(time - 1):
         img, new_state = cell.forward(img, zero_state)

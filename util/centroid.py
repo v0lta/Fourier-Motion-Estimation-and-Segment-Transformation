@@ -5,10 +5,15 @@ from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 
 
 def compute_2d_centroid(image):
+    """
+    Computed the 2d image centroid.
+    :param image: image tensor [batch_size, height, width]
+    :return: [batch_size, 2]
+    """
     image_norm = image/torch.sum(image.flatten(start_dim=1), dim=-1).unsqueeze(-1).unsqueeze(-1)
     x_max, y_max = image.shape[-2:]
-    x = torch.arange(0, x_max)
-    y = torch.arange(0, y_max)
+    x = torch.arange(0, x_max).cuda()
+    y = torch.arange(0, y_max).cuda()
     gridX, gridY = torch.meshgrid(x, y)
     gridX = gridX.unsqueeze(0).type(torch.float32)
     gridY = gridY.unsqueeze(0).type(torch.float32)
