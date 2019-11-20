@@ -58,10 +58,8 @@ class RegistrationCell(torch.nn.Module):
             vx = vx - w
         if vy.cpu().numpy()[0] > h/2.0:
             vy = vy - h
-        # print(vx, vy)
         vx = vx/w
         vy = vy/h
-        # print(vx, vy)
         if self.learn_param_net:
             net_in = torch.cat([cx.unsqueeze(-1),
                                 cy.unsqueeze(-1),
@@ -138,8 +136,8 @@ if __name__ == '__main__':
     seq_np, motion_vectors = it.sample(5, time)
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
-    cell = RegistrationCell(learn_param_net=True).cuda()
-    # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
+    # cell = RegistrationCell(learn_param_net=True).cuda()
+    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
     out_lst = []
     zero_state = (torch.zeros([1, 100]).cuda(), seq[0, :, :, :])
     img = seq[1, :, :, :]

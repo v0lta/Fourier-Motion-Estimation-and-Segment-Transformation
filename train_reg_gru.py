@@ -11,12 +11,12 @@ from torch.utils.tensorboard import SummaryWriter
 
 it = MovingMNISTAdvancedIterator()
 batch_size = 150
-time = 15
+time = 10
 context_time = 5
-pred_time = 10
+pred_time = 5
 state_size = 200
 cell = RegistrationCell(state_size=state_size).cuda()
-iterations = 3000
+iterations = 6000
 opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
 grad_clip_norm = 10000
 criterion = torch.nn.MSELoss()
