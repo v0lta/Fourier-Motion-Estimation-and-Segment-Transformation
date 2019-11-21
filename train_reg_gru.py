@@ -15,8 +15,8 @@ time = 10
 context_time = 4
 pred_time = 6
 state_size = 50
-cell = RegistrationCell(state_size=state_size).cuda()
-# cell = VelocityEstimationCell(cnn_depth_lst=[15, 15, 15], state_size=state_size).cuda()
+# cell = RegistrationCell(state_size=state_size).cuda()
+cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 iterations = 10000
 lr = 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)

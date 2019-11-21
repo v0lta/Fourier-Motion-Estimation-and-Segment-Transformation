@@ -106,13 +106,22 @@ class VelocityEstimationCell(torch.nn.Module):
             in_depth = cnn_depth
         self.cnn = torch.nn.Sequential(*cnn_lst)
 
-        self.state_net = []
-        in_size = 2 + self.state_size  # 4 + self.state_size
-        self.gru = gru
-        if self.gru is True:
-            self.state_net = torch.nn.GRUCell(self.cnn_depth_lst[-1]*64*64, state_size)
-        self.rnn_parameter_projection = torch.nn.Linear(self.state_size, 4)
-        # self.cnn_parameter_projection = torch.nn.Linear(self.cnn_depth_lst[-1]*64*64, 4)
+        self.phase_registration = phase_registration
+        if not self.phase_registration:
+            self.state_net = []
+            in_size = 2 + self.state_size  # 4 + self.state_size
+            self.gru = gru
+            if self.gru is True:
+                self.state_net = torch.nn.GRUCell(self.cnn_depth_lst[-1]*64*64, state_size)
+            self.rnn_parameter_projection = torch.nn.Linear(self.state_size, 4)
+        else:
+            self.state_net = []
+            in_size = 4
+            self.gru = gru
+            if self.gru is True:
+                self.state_net = torch.nn.GRUCell(in_size, state_size)
+            self.rnn_parameter_projection = torch.nn.Linear(self.state_size, 4)
+            self.cnn_parameter_projection = torch.nn.Linear(self.cnn_depth_lst[-1]*64*64, 4)
 
     def forward(self, img, state):
         """
@@ -120,22 +129,47 @@ class VelocityEstimationCell(torch.nn.Module):
         :param state: ([batch_size, state
         :return:
         """
-        batch_size = img.shape[0]
-        state_vec, prev_img = state
-
-        # centroid = compute_2d_centroid(img)
-        # cx = centroid[:, 0]
-        # cy = centroid[:, 1]
-        # vy, vx, _ = register_translation(img, prev_img)
-
-        cnn_out = self.cnn(torch.stack([img, prev_img], -3))
-        cnn_out = torch.reshape(cnn_out, [batch_size, -1])
-        new_state_vec = self.state_net(cnn_out, state_vec)
-        param_out = self.rnn_parameter_projection(new_state_vec)
-        vx, vy, vrx, vry = torch.unbind(param_out, dim=-1)
-        state_vec = new_state_vec
-        pred_img = fft_translation(img, vx, vy)
-        new_state = (state_vec, img)
+        if not self.phase_registration:
+            batch_size = img.shape[0]
+            state_vec, prev_img = state
+            # centroid = compute_2d_centroid(img)
+            # cx = centroid[:, 0]
+            # cy = centroid[:, 1]
+            # vy, vx, _ = register_translation(img, prev_img)
+            cnn_out = self.cnn(torch.stack([img, prev_img], -3))
+            cnn_out = torch.reshape(cnn_out, [batch_size, -1])
+            new_state_vec = self.state_net(cnn_out, state_vec)
+            param_out = self.rnn_parameter_projection(new_state_vec)
+            vx, vy, vrx, vry = torch.unbind(param_out, dim=-1)
+            state_vec = new_state_vec
+            pred_img = fft_translation(img, vx, vy)
+            new_state = (state_vec, img)
+        else:
+            batch_size = img.shape[0]
+            state_vec, prev_img = state
+            centroid = compute_2d_centroid(img)
+            cx = centroid[:, 0]
+            cy = centroid[:, 1]
+            vy, vx, _ = register_translation(img, prev_img)
+            cnn_out = self.cnn(torch.stack([img, prev_img], -3))
+            cnn_param_out = self.cnn_parameter_projection(cnn_out)
+            ccx, ccy, cvx, cvy = torch.unbind(cnn_param_out, dim=-1)
+            cx += ccx
+            cy += ccy
+            vx += cvx
+            vy += cvy
+            net_in = torch.cat([cx.unsqueeze(-1),
+                    cy.unsqueeze(-1),
+                    vx.unsqueeze(-1),
+                    vy.unsqueeze(-1)], dim=-1)
+            new_state_vec = self.state_net(net_in, state_vec)
+            param_out = self.rnn_parameter_projection(new_state_vec)
+            vvx, vvy, vrx, vry = torch.unbind(param_out, dim=-1)
+            vx += vvx
+            vy += vvy
+            state_vec = new_state_vec
+            pred_img = fft_translation(img, vx, vy)
+            new_state = (state_vec, img)
         return pred_img, new_state
 
 
