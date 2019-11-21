@@ -22,14 +22,15 @@ class RegistrationCell(torch.nn.Module):
             self.net_weight_size_lst = net_weight_size_lst + [state_size]
         self.state_size = state_size
 
-
         self.state_net = []
         activation = torch.nn.Tanh()
-        in_size = 4 + self.state_size # 4 + self.state_size
+
         self.gru = gru
         if self.gru is True:
+            in_size = 4  # + self.state_size
             self.state_net = torch.nn.GRUCell(in_size, state_size)
         else:
+            in_size = 4 + self.state_size # 4 + self.state_size
             for layer_no, net_weight_no in enumerate(self.net_weight_size_lst):
                 layer = torch.nn.Linear(in_size, net_weight_no)
                 self.state_net.append(layer)
@@ -91,7 +92,7 @@ class VelocityEstimationCell(torch.nn.Module):
     """
     A fourier Domain fft-prediction RNN correction cell.
     """
-    def __init__(self, cnn_depth_lst, state_size=100, gru=True):
+    def __init__(self, cnn_depth_lst, state_size=100, gru=True, phase_registration=False):
         super().__init__()
         self.cnn_depth_lst = cnn_depth_lst
         self.state_size = state_size

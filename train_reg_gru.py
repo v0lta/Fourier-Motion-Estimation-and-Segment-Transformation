@@ -15,9 +15,9 @@ time = 10
 context_time = 4
 pred_time = 6
 state_size = 50
-# cell = RegistrationCell(state_size=state_size).cuda()
-cell = VelocityEstimationCell(cnn_depth_lst=[15, 15, 15], state_size=state_size).cuda()
-iterations = 1500
+cell = RegistrationCell(state_size=state_size).cuda()
+# cell = VelocityEstimationCell(cnn_depth_lst=[15, 15, 15], state_size=state_size).cuda()
+iterations = 10000
 lr = 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 grad_clip_norm = 400
@@ -70,14 +70,19 @@ for i in range(iterations):
         # apply gradients
         opt.step()
         time_end = pytime.time() - time_start
-        print('it', i, 'mse', loss.detach().cpu().numpy(), 'grad-norm', total_norm, 'it-time [s]', time_end)
+        print('it', i, 'of', iterations, 'mse', loss.detach().cpu().numpy(), 'grad-norm', total_norm, 'it-time [s]', time_end)
         loss_lst.append(loss.detach().cpu().numpy())
         grad_lst.append(total_norm)
         writer.add_scalar('loss', loss, global_step=i)
         writer.add_scalar('grad_norm', total_norm, global_step=i)
-        cat_img = torch.cat([pred_vid[0, -1, :, :], prediction[0, -1, :, :]], -1).unsqueeze(0)
-        writer.add_image('pred_gt', cat_img/torch.max(cat_img),
+        cat_img = torch.cat([pred_vid[:, 0, :, :], prediction[:, 0, :, :]], -1)
+        writer.add_image('pred_gt', cat_img[0].unsqueeze(0)/torch.max(cat_img[0]),
                          global_step=i)
+        cat_img_cats = cat_img[0]
+        for j in range(1, pred_time):
+            cat_img_cats = torch.cat([cat_img_cats, cat_img[j]], -2)
+        writer.add_image('pred_vid', cat_img_cats.unsqueeze(0)/torch.max(cat_img_cats), global_step=i)
+
 
 plt.plot(loss_lst)
 plt.show()
@@ -90,10 +95,11 @@ write = np.concatenate([net_out, net_in_gt], -1)
 write = np.abs(write)/np.max(np.abs(write))
 for vno in range(batch_size):
     video_writer = VideoWriter(height=64, width=128)
-    video_writer.write_video(write[:, vno, :, :], filename='./test_vids/net_out' + str(vno) + '.mp4')
+    video_writer.write_video(write[:, vno, :, :], filename='./' + writer.log_dir + '/' + str(vno) + '.mp4')
     plt.close()
     if vno > 50:
         break
 
 # pickle the cell
-pickle.dump(cell, open('cell.pkl', 'wb'))
+pickle.dump(cell, open('./' + writer.log_dir + '/' + 'cell.pkl', 'wb'))
+print('done')
