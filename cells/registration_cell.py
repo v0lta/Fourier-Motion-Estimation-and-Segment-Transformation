@@ -61,15 +61,20 @@ class RegistrationCell(torch.nn.Module):
         vx = vx/w
         vy = vy/h
         if self.learn_param_net:
-            net_in = torch.cat([cx.unsqueeze(-1),
-                                cy.unsqueeze(-1),
-                                vx.unsqueeze(-1),
-                                vy.unsqueeze(-1),
-                                state_vec], dim=-1)
+
             if self.gru:
+                net_in = torch.cat([cx.unsqueeze(-1),
+                                    cy.unsqueeze(-1),
+                                    vx.unsqueeze(-1),
+                                    vy.unsqueeze(-1)], dim=-1)
                 new_state_vec = self.state_net(net_in, state_vec)
                 param_out = self.parameter_projection(new_state_vec)
             else:
+                net_in = torch.cat([cx.unsqueeze(-1),
+                    cy.unsqueeze(-1),
+                    vx.unsqueeze(-1),
+                    vy.unsqueeze(-1),
+                    state_vec], dim=-1)
                 new_state_vec = self.state_net(net_in)
                 param_out = self.parameter_projection(new_state_vec)
             vvx, vvy, vrx, vry = torch.unbind(param_out, dim=-1)
@@ -93,17 +98,20 @@ class VelocityEstimationCell(torch.nn.Module):
 
         cnn_lst = []
         activation = torch.nn.ReLU()
-        for cnn_depth in range(cnn_depth_lst):
-            cnn_lst.append(torch.nn.Conv2d(2, cnn_depth, kernel_size=3, padding=3))
+        in_depth = 2
+        for cnn_depth in cnn_depth_lst:
+            cnn_lst.append(torch.nn.Conv2d(in_depth, cnn_depth, kernel_size=3, padding=1))
             cnn_lst.append(activation)
-        self.cnn = torch.nn.Sequential(cnn_lst)
+            in_depth = cnn_depth
+        self.cnn = torch.nn.Sequential(*cnn_lst)
 
         self.state_net = []
         in_size = 2 + self.state_size  # 4 + self.state_size
         self.gru = gru
         if self.gru is True:
-            self.state_net = torch.nn.GRUCell(in_size, state_size)
-        self.parameter_projection = torch.nn.Linear(self.state_size, 4)
+            self.state_net = torch.nn.GRUCell(self.cnn_depth_lst[-1]*64*64, state_size)
+        self.rnn_parameter_projection = torch.nn.Linear(self.state_size, 4)
+        # self.cnn_parameter_projection = torch.nn.Linear(self.cnn_depth_lst[-1]*64*64, 4)
 
     def forward(self, img, state):
         """
@@ -111,19 +119,19 @@ class VelocityEstimationCell(torch.nn.Module):
         :param state: ([batch_size, state
         :return:
         """
-
+        batch_size = img.shape[0]
         state_vec, prev_img = state
-        cnn_out = self.cnn(torch.cat([img, prev_img], 0))
 
+        # centroid = compute_2d_centroid(img)
+        # cx = centroid[:, 0]
+        # cy = centroid[:, 1]
+        # vy, vx, _ = register_translation(img, prev_img)
 
-        net_in = torch.cat([vx.unsqueeze(-1),
-                            vy.unsqueeze(-1),
-                            state_vec], dim=-1)
-        new_state_vec = self.state_net(net_in, state_vec)
-        param_out = self.parameter_projection(new_state_vec)
-        vvx, vvy, vrx, vry = torch.unbind(param_out, dim=-1)
-        vx += vvx
-        vy += vvy
+        cnn_out = self.cnn(torch.stack([img, prev_img], -3))
+        cnn_out = torch.reshape(cnn_out, [batch_size, -1])
+        new_state_vec = self.state_net(cnn_out, state_vec)
+        param_out = self.rnn_parameter_projection(new_state_vec)
+        vx, vy, vrx, vry = torch.unbind(param_out, dim=-1)
         state_vec = new_state_vec
         pred_img = fft_translation(img, vx, vy)
         new_state = (state_vec, img)
@@ -137,7 +145,7 @@ if __name__ == '__main__':
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
     # cell = RegistrationCell(learn_param_net=True).cuda()
-    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50])
+    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
     out_lst = []
     zero_state = (torch.zeros([1, 100]).cuda(), seq[0, :, :, :])
     img = seq[1, :, :, :]

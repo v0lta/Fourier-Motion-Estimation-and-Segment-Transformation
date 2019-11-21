@@ -10,17 +10,21 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 it = MovingMNISTAdvancedIterator()
-batch_size = 150
+batch_size = 400
 time = 10
-context_time = 5
-pred_time = 5
-state_size = 200
-cell = RegistrationCell(state_size=state_size).cuda()
-iterations = 6000
-opt = torch.optim.Adam(cell.parameters(), lr=0.000001)
-grad_clip_norm = 10000
+context_time = 4
+pred_time = 6
+state_size = 50
+# cell = RegistrationCell(state_size=state_size).cuda()
+cell = VelocityEstimationCell(cnn_depth_lst=[15, 15, 15], state_size=state_size).cuda()
+iterations = 1500
+lr = 0.0005
+opt = torch.optim.Adam(cell.parameters(), lr=lr)
+grad_clip_norm = 400
 criterion = torch.nn.MSELoss()
-
+writer = torch.utils.tensorboard.writer.SummaryWriter(
+    comment='clip_' + str(grad_clip_norm) + '_lr_' + str(lr) + '_bs_' + str(batch_size)
+            + '_state_' + str(state_size) + '_' + type(cell).__name__)
 loss_lst = []
 grad_lst = []
 
@@ -31,6 +35,7 @@ for i in range(iterations):
         opt.zero_grad()
         seq_np, motion_vectors = it.sample(batch_size, time)
         seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
+        seq = seq/255.0
         # seq = seq[:, 0, :, :].unsqueeze(1)
         context = seq[:context_time, :, :, :]
         prediction = seq[context_time:, :, :, :]
@@ -49,6 +54,7 @@ for i in range(iterations):
             prediction_video_lst.append(pimg)
 
         pred_vid = torch.stack(prediction_video_lst, dim=0)
+        prediction = torch.clamp(prediction, 0.0, 1.0)
         loss = criterion(pred_vid, prediction)
 
         # compute gradients
@@ -67,6 +73,11 @@ for i in range(iterations):
         print('it', i, 'mse', loss.detach().cpu().numpy(), 'grad-norm', total_norm, 'it-time [s]', time_end)
         loss_lst.append(loss.detach().cpu().numpy())
         grad_lst.append(total_norm)
+        writer.add_scalar('loss', loss, global_step=i)
+        writer.add_scalar('grad_norm', total_norm, global_step=i)
+        cat_img = torch.cat([pred_vid[0, -1, :, :], prediction[0, -1, :, :]], -1).unsqueeze(0)
+        writer.add_image('pred_gt', cat_img/torch.max(cat_img),
+                         global_step=i)
 
 plt.plot(loss_lst)
 plt.show()
@@ -81,6 +92,8 @@ for vno in range(batch_size):
     video_writer = VideoWriter(height=64, width=128)
     video_writer.write_video(write[:, vno, :, :], filename='./test_vids/net_out' + str(vno) + '.mp4')
     plt.close()
+    if vno > 50:
+        break
 
 # pickle the cell
 pickle.dump(cell, open('cell.pkl', 'wb'))

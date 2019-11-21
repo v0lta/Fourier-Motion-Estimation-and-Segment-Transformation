@@ -36,7 +36,30 @@ class VideoWriter(object):
         anim.save(filename, fps=5)
         plt.clf()
 
+def write_to_figure(video_array):
+    fig=plt.figure(figsize=(10, 1))
+    columns = video_array.shape[0]
+    rows = 1
+    for i in range(1, columns*rows +1):
+        img = video_array[i, :, :]
+        fig.add_subplot(rows, columns, i)
+        plt.imshow(img)
+        plt.axis('off')
+    plt.show()
+
 
 if __name__ == '__main__':
-    vid_write = VideoWriter()
-    vid_write.write_video()
+    # vid_write = VideoWriter()
+    # vid_write.write_video()
+
+    w=64
+    h=64
+    fig=plt.figure()
+    columns = 4
+    rows = 1
+    for i in range(1, columns*rows +1):
+        img = np.random.randint(10, size=(h,w))
+        fig.add_subplot(rows, columns, i)
+        plt.imshow(img)
+        plt.axis('off')
+    plt.show()
