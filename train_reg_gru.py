@@ -15,9 +15,9 @@ time = 10
 context_time = 4
 pred_time = 6
 state_size = 1024
-# cell = RegistrationCell(state_size=state_size).cuda()
+cell = RegistrationCell(state_size=state_size).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
-cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
+# cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
 iterations = 10000
 lr = 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
@@ -29,6 +29,7 @@ writer = torch.utils.tensorboard.writer.SummaryWriter(
             + '_state_' + str(state_size) + '_' + type(cell).__name__)
 loss_lst = []
 grad_lst = []
+seq_np = None
 
 #with torch.autograd.detect_anomaly():
 for i in range(iterations):
@@ -104,4 +105,5 @@ for vno in range(batch_size):
 
 # pickle the cell
 pickle.dump(cell, open('./' + writer.log_dir + '/' + 'cell.pkl', 'wb'))
+pickle.dump(seq_np, open('./' + writer.log_dir + '/' + 'last_seq.pkl', 'wb'))
 print('done')

@@ -1,6 +1,10 @@
+"""
+Translated from by https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
+"""
+
 import torch
 import numpy as np
-from util.rotation_translation_pytorch import complex_hadamard, fft_shift, complex_abs, complex_conj
+from util.rotation_translation_pytorch import complex_hadamard, fft_shift, complex_abs, complex_conj, outer
 import math
 
 def register_translation(image1, image2):
@@ -35,10 +39,9 @@ def flip(x, dim):
                  for i in range(x.dim()))
     return x[inds]
 
+
 def log_polar(image, angles=None, radii=None):
-    """Return log-polar transformed image and log base.
-    TODO: Fixme using https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
-    TODO: Why is the output flipped? """
+    """Return log-polar transformed image and log base. """
     print(image.shape)
     shape = image.shape[1:]
     center = shape[0] / 2, shape[1] / 2
@@ -46,20 +49,18 @@ def log_polar(image, angles=None, radii=None):
         angles = shape[0]
     if radii is None:
         radii = shape[1]
-    theta = torch.empty((angles, radii), dtype=torch.float32)
+    theta = torch.empty((angles, radii), dtype=torch.float32).cuda()
     theta.T[:] = torch.linspace(0,np.pi, angles) # * -1.0
     # d = radii
     x1 = shape[0] - center[0]
     x2 = shape[1] - center[1]
     d = np.sqrt(x1*x1 + x2*x2)
-    log_base = torch.tensor(10.0 ** (np.log10(d) / radii))
+    log_base = torch.tensor(10.0 ** (np.log10(d) / radii)).cuda()
     radius = torch.empty_like(theta)
     radius[:] = torch.pow(log_base,
-                          torch.arange(radii).type(torch.float32)) - 1
+                          torch.arange(radii).type(torch.float32).cuda()) - 1
     x = radius * (shape[0]/shape[1]) * torch.cos(theta) + center[0]
     y = radius * (shape[1]/shape[0]) * torch.sin(theta) + center[1]
-    # print(x)
-    # x = shape[0] - x
     y = shape[1] - y
     grid = torch.stack([(x/shape[0] - 0.5)*2, (y/shape[1] - 0.5)*2], dim=-1)
     output = torch.nn.functional.grid_sample(image.unsqueeze(0),
@@ -74,12 +75,30 @@ def register_rotation(image1, image2):
     f0 = fft_shift(complex_abs(torch.fft(c_image1, 2)))
     f1 = fft_shift(complex_abs(torch.fft(c_image2, 2)))
 
+    h = high_pass(f0.shape)
+    f0 = f0*h
+    f1 = f1*h
+
     f0, base = log_polar(f0)
     f1, base = log_polar(f1)
     i0, i1, ir = register_translation(f0, f1)
-    angle = 180.0 * i0.type(torch.float32) / ir.shape[0]
+    angle = 180.0 * i0.type(torch.float32) / ir.shape[-3]
     scale = base ** i1.type(torch.float32)
+
+    if angle.cpu().numpy() < -90.0:
+        angle += 180.0
+    elif angle.cpu().numpy() > 90.0:
+        angle -= 180.0
+
     return angle, scale
+
+
+def high_pass(shape):
+    """Return high pass filter to be multiplied with fourier transform."""
+    x = outer(
+        torch.cos(torch.linspace(-math.pi/2., math.pi/2., shape[-2])),
+        torch.cos(torch.linspace(-math.pi/2., math.pi/2., shape[-1]))).cuda()
+    return (1.0 - x) * (2.0 - x)
 
 
 if __name__ == '__main__':
@@ -90,7 +109,7 @@ if __name__ == '__main__':
 
     face = misc.face()
     I = face
-    # I = I[128:(512+128), 256:(512+256)]
+    I = I[128:(512+128), 256:(512+256)]
     I = np.mean(I, axis=-1)
 
     rows, cols = I.shape
@@ -99,11 +118,11 @@ if __name__ == '__main__':
     plt.imshow(I)
     plt.show()
 
-    It = torch.tensor(I.astype(np.float32)).unsqueeze(0)
+    It = torch.tensor(I.astype(np.float32)).unsqueeze(0).cuda()
     # Itt = tr.fft_translation(It, torch.tensor(0.1), torch.tensor(0.15))
-    Ittr = tr.fft_rotation(It, torch.tensor(0.1).unsqueeze(0))
+    Ittr = tr.fft_rotation(It, torch.tensor(1.).unsqueeze(0).cuda())
 
-    plt.imshow(Ittr[0, :, :].numpy())
+    plt.imshow(Ittr[0, :, :].cpu().numpy())
     plt.show()
 
     It2 = torch.cat([It, It], 0)
@@ -111,18 +130,20 @@ if __name__ == '__main__':
     vx, vy, ggstar = register_translation(It2, Ittr2)
     print(vx, vy)
 
-    logpolarI, base_np, x, y = npreg.logpolar(I)
-    logpolarIt, base_torch = log_polar(It)
-    print('base diff', np.abs(base_np - base_torch.numpy()))
-    print('logpolar diff', np.mean(np.abs(logpolarI - logpolarIt[0, 0, :, :].numpy())))
-    plt.imshow(logpolarI)
-    plt.show()
-
-    plt.imshow(logpolarIt[0, 0, :, :])
-    plt.show()
-
-    plt.imshow(logpolarI - logpolarIt[0, 0, :, :].numpy())
-    plt.show()
+    # logpolarI, base_np = npreg.logpolar(I)
+    # logpolarIt, base_torch = log_polar(It)
+    # print('base diff', np.abs(base_np - base_torch.cpu().numpy()))
+    # print('logpolar diff', np.mean(np.abs(logpolarI - logpolarIt[0, 0, :, :].cpu().numpy())))
+    # plt.imshow(logpolarI)
+    # plt.show()
+    #
+    # plt.imshow(logpolarIt[0, 0, :, :].cpu().numpy())
+    # plt.show()
+    #
+    # plt.imshow(logpolarI - logpolarIt[0, 0, :, :].cpu().numpy())
+    # plt.show()
 
     angle, scale = register_rotation(It, Ittr)
-    print(angle)
+    _, scale2, angle2, _ = npreg.similarity(It[0, :, :].cpu().numpy(),
+                                            Ittr[0, :, :].cpu().numpy())
+    print(angle, angle2)

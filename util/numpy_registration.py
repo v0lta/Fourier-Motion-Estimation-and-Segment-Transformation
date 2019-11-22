@@ -98,6 +98,13 @@ __docformat__ = 'restructuredtext en'
 __all__ = ('translation', 'similarity', 'similarity_matrix', 'logpolar',
            'highpass')
 
+import math
+
+import numpy
+from numpy.fft import fft2, ifft2, fftshift
+
+import scipy.ndimage.interpolation as ndii
+
 
 def translation(im0, im1):
     """Return translation vector to register images."""
@@ -187,8 +194,6 @@ def similarity(im0, im1):
         t1 -= f0.shape[1]
 
     im2 = ndii.shift(im2, [t0, t1])
-    raw_t0 = t0
-    raw_t1 = t1
 
     # correct parameters for ndimage's internal processing
     if angle > 0.0:
@@ -199,7 +204,7 @@ def similarity(im0, im1):
         t0, t1 = d+t1, d+t0
     scale = (im1.shape[1] - 1) / (int(im1.shape[1] / scale) - 1)
 
-    return im2, scale, angle, [-t0, -t1], [raw_t0, raw_t1]
+    return im2, scale, angle, [-t0, -t1]
 
 
 def similarity_matrix(scale, angle, vector):
@@ -243,7 +248,7 @@ def logpolar(image, angles=None, radii=None):
     y = radius * numpy.cos(theta) + center[1]
     output = numpy.empty_like(x)
     ndii.map_coordinates(image, [x, y], output=output)
-    return output, log_base, x, y
+    return output, log_base
 
 
 def highpass(shape):

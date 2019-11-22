@@ -5,7 +5,7 @@ from util.pytorch_registration import register_translation
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from util.centroid import compute_2d_centroid
 import matplotlib.pyplot as plt
-from util.write_movie import VideoWriter
+from util.write_movie import VideoWriter, write_to_figure
 
 
 class RegistrationCell(torch.nn.Module):
@@ -14,7 +14,7 @@ class RegistrationCell(torch.nn.Module):
     """
 
     def __init__(self, state_size=100, net_weight_size_lst=None, learn_param_net=True,
-                 gru=True):
+                 gru=True, rotation=False):
         super().__init__()
         if net_weight_size_lst is None:
             assert gru is True
@@ -26,11 +26,16 @@ class RegistrationCell(torch.nn.Module):
         activation = torch.nn.Tanh()
 
         self.gru = gru
+        if rotation:
+            self.in_size = 5
+        else:
+            self.in_size = 4
+
         if self.gru is True:
-            in_size = 4  # + self.state_size
+            in_size = self.in_size  # + self.state_size
             self.state_net = torch.nn.GRUCell(in_size, state_size)
         else:
-            in_size = 4 + self.state_size # 4 + self.state_size
+            in_size = self.in_size + self.state_size # 4 + self.state_size
             for layer_no, net_weight_no in enumerate(self.net_weight_size_lst):
                 layer = torch.nn.Linear(in_size, net_weight_no)
                 self.state_net.append(layer)
@@ -44,7 +49,7 @@ class RegistrationCell(torch.nn.Module):
         """
         :param img: [batch_size, 64, 64] image tensor
         :param state: ([batch_size, state
-        :return:
+        :return: predicted image, new state
         """
         w, h = img.shape[-2:]
         w = w*1.0
@@ -194,14 +199,15 @@ class VelocityEstimationCell(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    it = MovingMNISTAdvancedIterator()
+    it = MovingMNISTAdvancedIterator(rotation_angle_range=(15, 15),
+                                     global_rotation_angle_range=(15, 15))
     time = 10
     seq_np, motion_vectors = it.sample(5, time)
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
-    # cell = RegistrationCell(learn_param_net=True).cuda()
+    cell = RegistrationCell(learn_param_net=False).cuda()
     # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
-    cell = GatedRecurrentUnitWrapper(state_size=100).cuda()
+    # cell = GatedRecurrentUnitWrapper(state_size=100).cuda()
     out_lst = []
     zero_state = (torch.zeros([1, 100]).cuda(), seq[0, :, :, :])
     img = seq[1, :, :, :]
@@ -211,9 +217,10 @@ if __name__ == '__main__':
         out_lst.append(img)
 
     video = torch.stack(out_lst)
-    write = np.concatenate([video.numpy(), seq_np[1:, 0]], -1)
+    write = np.concatenate([video.cpu().numpy(), seq_np[1:, 0]], -1)
     write = np.abs(write)/np.max(np.abs(write))
-    video_writer = VideoWriter(height=64, width=128)
-    video_writer.write_video(write[:, 0, :, :], filename='net_out.mp4')
+    # video_writer = VideoWriter(height=64, width=128)
+    # video_writer.write_video(write[:, 0, :, :], filename='net_out.mp4')
+    write_to_figure(write[:, 0, :, :])
     plt.show()
 
