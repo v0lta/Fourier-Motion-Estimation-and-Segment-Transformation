@@ -129,7 +129,8 @@ def fft_rotation(image, theta):
     image = torch.nn.functional.pad(image, [col_no_init//2, col_no_init//2,
                                             row_no_init//2, row_no_init//2])
     _, row_no, col_no = image.shape
-    theta = theta*np.pi
+    # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
+    theta = torch.tanh(theta)*np.pi*0.25
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
 
@@ -177,9 +178,9 @@ if __name__ == '__main__':
     m, n = I.shape
     plt.imshow(I)
     plt.show()
-    I_tensor = torch.tensor(I).unsqueeze(0)
-    I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1).unsqueeze(0),
-                                     torch.tensor(0.15).unsqueeze(0))
+    I_tensor = torch.tensor(I).unsqueeze(0).cuda()
+    I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1).unsqueeze(0).cuda(),
+                                     torch.tensor(0.15).unsqueeze(0).cuda())
     I_array_trans = np_rot_trans.fft_translation(I, 0.1, 0.15)
     plt.imshow(I_tensor_trans[0, :, :].numpy())
     plt.show()

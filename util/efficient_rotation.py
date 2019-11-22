@@ -18,11 +18,11 @@ a = np.tan(theta/2)
 b = - np.sin(theta)
 
 
-def fft_shear(image, row_now, col_no, angle):
+def fft_shear(image, row_no, col_no, angle):
     coords = np.linspace(-np.fix(col_no/2,), np.ceil(col_no/2)-1, num=col_no)
     shift = np.fft.fftshift(coords)
-    i_vec = np.array(range(0, row_now))-np.floor(row_now/2.)
-    c_vec = -2*np.pi*shift*angle/row_now
+    i_vec = np.array(range(0, row_no))-np.floor(row_no/2.)
+    c_vec = -2*np.pi*shift*angle/row_no
     shear_mat = np.exp(1j*np.outer(i_vec, c_vec))
     image_shear = np.fft.ifft(np.fft.fft(image)*shear_mat)
     image_shear = np.real(image_shear)

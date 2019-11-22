@@ -40,14 +40,9 @@ def write_to_figure(video_array):
     time = video_array.shape[0]
     fig=plt.figure(figsize=(time, 2))
     columns = video_array.shape[0]
-    # plt.xlabel('time')
-    # plt.ylabel('prediction and ground truth')
-    # plt.yticks([])
-    # plt.xticks([])
-    # plt.axis('off')
     rows = 1
-    for i in range(1, columns*rows):
-        img = video_array[i, :, :]
+    for i in range(1, columns*rows +1 ):
+        img = video_array[i-1, :, :]
         fig.add_subplot(rows, columns, i)
         plt.imshow(img)
         plt.axis('off')

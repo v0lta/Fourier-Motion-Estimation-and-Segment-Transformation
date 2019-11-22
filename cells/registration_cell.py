@@ -88,6 +88,26 @@ class RegistrationCell(torch.nn.Module):
         return pred_img, new_state
 
 
+class GatedRecurrentUnitWrapper(torch.nn.Module):
+    """
+    Wrap a GRU so that it works with the interface used here.
+    """
+    def __init__(self, state_size):
+        super().__init__()
+        self.cell = torch.nn.GRUCell(64*64, state_size)
+        self.proj = torch.nn.Linear(state_size, 64*64)
+
+    def forward(self, img, state):
+        batch_size = img.shape[0]
+        state_vec, prev_img = state
+        flat_img = torch.reshape(img, [batch_size, -1])
+        new_state_vec = self.cell(flat_img, state_vec)
+        pred_vec = self.proj(new_state_vec)
+        pred_img = torch.reshape(pred_vec, [batch_size, 64, 64])
+        new_state = (new_state_vec, pred_img)
+        return pred_img, new_state
+
+
 class VelocityEstimationCell(torch.nn.Module):
     """
     A fourier Domain fft-prediction RNN correction cell.
@@ -180,7 +200,8 @@ if __name__ == '__main__':
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
     # cell = RegistrationCell(learn_param_net=True).cuda()
-    cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
+    # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
+    cell = GatedRecurrentUnitWrapper(state_size=100).cuda()
     out_lst = []
     zero_state = (torch.zeros([1, 100]).cuda(), seq[0, :, :, :])
     img = seq[1, :, :, :]

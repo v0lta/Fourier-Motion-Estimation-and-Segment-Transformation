@@ -4,11 +4,11 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter, write_to_figure
-from cells.registration_cell import RegistrationCell, VelocityEstimationCell
+from cells.registration_cell import RegistrationCell, VelocityEstimationCell, GatedRecurrentUnitWrapper
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-
+rotation = 0
 it = MovingMNISTAdvancedIterator()
 batch_size = 400
 time = 10
@@ -16,14 +16,16 @@ context_time = 4
 pred_time = 6
 state_size = 50
 # cell = RegistrationCell(state_size=state_size).cuda()
-cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
+# cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
+cell = GatedRecurrentUnitWrapper(state_size=1024)
 iterations = 10000
 lr = 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 grad_clip_norm = 400
 criterion = torch.nn.MSELoss()
 writer = torch.utils.tensorboard.writer.SummaryWriter(
-    comment='clip_' + str(grad_clip_norm) + '_lr_' + str(lr) + '_bs_' + str(batch_size)
+    comment='_rot_' + str(rotation) + '_bs_' + str(batch_size)
+            + 'clip_' + str(grad_clip_norm) + '_lr_' + str(lr)
             + '_state_' + str(state_size) + '_' + type(cell).__name__)
 loss_lst = []
 grad_lst = []
