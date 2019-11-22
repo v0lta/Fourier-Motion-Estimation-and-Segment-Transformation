@@ -37,10 +37,16 @@ class VideoWriter(object):
         plt.clf()
 
 def write_to_figure(video_array):
-    fig=plt.figure(figsize=(10, 1))
+    time = video_array.shape[0]
+    fig=plt.figure(figsize=(time, 2))
     columns = video_array.shape[0]
+    # plt.xlabel('time')
+    # plt.ylabel('prediction and ground truth')
+    # plt.yticks([])
+    # plt.xticks([])
+    # plt.axis('off')
     rows = 1
-    for i in range(1, columns*rows +1):
+    for i in range(1, columns*rows):
         img = video_array[i, :, :]
         fig.add_subplot(rows, columns, i)
         plt.imshow(img)

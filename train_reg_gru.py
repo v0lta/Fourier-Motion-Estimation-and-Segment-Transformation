@@ -3,7 +3,7 @@ import time as pytime
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from util.write_movie import VideoWriter
+from util.write_movie import VideoWriter, write_to_figure
 from cells.registration_cell import RegistrationCell, VelocityEstimationCell
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
@@ -91,10 +91,10 @@ plt.show()
 
 net_in_gt = np.concatenate([context.detach().cpu().numpy(), prediction.detach().cpu().numpy()], 0)
 net_out = np.concatenate([context.detach().cpu().numpy(), pred_vid.detach().cpu().numpy()], 0)
-write = np.concatenate([net_out, net_in_gt], -1)
+write = np.concatenate([net_out, net_in_gt], -2)
 write = np.abs(write)/np.max(np.abs(write))
 for vno in range(batch_size):
-    video_writer = VideoWriter(height=64, width=128)
+    video_writer = VideoWriter(height=128, width=64)
     video_writer.write_video(write[:, vno, :, :], filename='./' + writer.log_dir + '/' + str(vno) + '.mp4')
     plt.close()
     if vno > 50:
