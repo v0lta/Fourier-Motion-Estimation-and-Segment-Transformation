@@ -17,7 +17,7 @@ pred_time = 6
 state_size = 1024
 # cell = RegistrationCell(state_size=state_size).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
-cell = GatedRecurrentUnitWrapper(state_size=state_size)
+cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
 iterations = 10000
 lr = 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
