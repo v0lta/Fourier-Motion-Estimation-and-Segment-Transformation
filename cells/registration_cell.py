@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-from util.rotation_translation_pytorch import fft_translation
-from util.pytorch_registration import register_translation
+from util.rotation_translation_pytorch import fft_translation, fft_rotation
+from util.pytorch_registration import register_translation, register_rotation
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from util.centroid import compute_2d_centroid
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ from util.write_movie import VideoWriter, write_to_figure
 
 class RegistrationCell(torch.nn.Module):
     """
-    A fourier Domain fft-prediction RNN correction cell.
+    A fourier Domain fft-estimation, RNN-correction, fft-translation cell.
     """
 
     def __init__(self, state_size=100, net_weight_size_lst=None, learn_param_net=True,
@@ -26,7 +26,8 @@ class RegistrationCell(torch.nn.Module):
         activation = torch.nn.Tanh()
 
         self.gru = gru
-        if rotation:
+        self.rotation = rotation
+        if self.rotation:
             self.in_size = 5
         else:
             self.in_size = 4
@@ -42,7 +43,7 @@ class RegistrationCell(torch.nn.Module):
                 self.state_net.append(activation)
                 in_size = net_weight_no
                 self.state_net = torch.nn.Sequential(*self.state_net)
-        self.parameter_projection = torch.nn.Linear(self.state_size, 4)
+        self.parameter_projection = torch.nn.Linear(self.state_size, 3)
         self.learn_param_net = learn_param_net
 
     def forward(self, img, state):
@@ -66,29 +67,46 @@ class RegistrationCell(torch.nn.Module):
             vy = vy - h
         vx = vx/w
         vy = vy/h
-        if self.learn_param_net:
 
+        if self.rotation:
+            rz = register_rotation(img, prev_img)[0]
+            rz = rz*np.pi/180.
+            estimation_vec = torch.cat([cx.unsqueeze(-1),
+                                        cy.unsqueeze(-1),
+                                        vx.unsqueeze(-1),
+                                        vy.unsqueeze(-1),
+                                        rz.unsqueeze(-1)], dim=-1)
+        else:
+            estimation_vec = torch.cat([cx.unsqueeze(-1),
+                                        cy.unsqueeze(-1),
+                                        vx.unsqueeze(-1),
+                                        vy.unsqueeze(-1)], dim=-1)
+            rz = 0
+
+        if self.learn_param_net:
             if self.gru:
-                net_in = torch.cat([cx.unsqueeze(-1),
-                                    cy.unsqueeze(-1),
-                                    vx.unsqueeze(-1),
-                                    vy.unsqueeze(-1)], dim=-1)
-                new_state_vec = self.state_net(net_in, state_vec)
+                new_state_vec = self.state_net(estimation_vec, state_vec)
                 param_out = self.parameter_projection(new_state_vec)
             else:
-                net_in = torch.cat([cx.unsqueeze(-1),
-                    cy.unsqueeze(-1),
-                    vx.unsqueeze(-1),
-                    vy.unsqueeze(-1),
-                    state_vec], dim=-1)
+                net_in = torch.cat([estimation_vec, state_vec], dim=-1)
                 new_state_vec = self.state_net(net_in)
                 param_out = self.parameter_projection(new_state_vec)
-            vvx, vvy, vrx, vry = torch.unbind(param_out, dim=-1)
+
+            vvx, vvy, vrz = torch.unbind(param_out, dim=-1)
             vx += vvx
             vy += vvy
+            rz += vrz
             state_vec = new_state_vec
 
         pred_img = fft_translation(img, vx, vy)
+
+        if self.rotation:
+            cent = compute_2d_centroid(pred_img)
+            rot_pred_img = fft_rotation(pred_img, rz)
+            rot_pred_img_cent = compute_2d_centroid(rot_pred_img)
+            displacement = cent - rot_pred_img_cent
+            displacement = displacement/64.
+            pred_img = fft_translation(rot_pred_img, displacement[:, 1], displacement[:, 0])
         new_state = (state_vec, img)
         return pred_img, new_state
 
@@ -205,7 +223,7 @@ if __name__ == '__main__':
     seq_np, motion_vectors = it.sample(5, time)
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
-    cell = RegistrationCell(learn_param_net=False).cuda()
+    cell = RegistrationCell(learn_param_net=False, rotation=True).cuda()
     # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
     # cell = GatedRecurrentUnitWrapper(state_size=100).cuda()
     out_lst = []

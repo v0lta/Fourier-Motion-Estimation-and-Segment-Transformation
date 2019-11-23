@@ -42,7 +42,6 @@ def flip(x, dim):
 
 def log_polar(image, angles=None, radii=None):
     """Return log-polar transformed image and log base. """
-    print(image.shape)
     shape = image.shape[1:]
     center = shape[0] / 2, shape[1] / 2
     if angles is None:
@@ -50,7 +49,7 @@ def log_polar(image, angles=None, radii=None):
     if radii is None:
         radii = shape[1]
     theta = torch.empty((angles, radii), dtype=torch.float32).cuda()
-    theta.T[:] = torch.linspace(0,np.pi, angles) # * -1.0
+    theta.T[:] = torch.linspace(0, np.pi, angles) # * -1.0
     # d = radii
     x1 = shape[0] - center[0]
     x2 = shape[1] - center[1]
@@ -70,6 +69,7 @@ def log_polar(image, angles=None, radii=None):
 
 
 def register_rotation(image1, image2):
+    assert image1.shape == image2.shape, 'images must have the same size.'
     c_image1 = torch.stack([image1, torch.zeros_like(image1)], -1)
     c_image2 = torch.stack([image2, torch.zeros_like(image2)], -1)
     f0 = fft_shift(complex_abs(torch.fft(c_image1, 2)))
@@ -81,14 +81,15 @@ def register_rotation(image1, image2):
 
     f0, base = log_polar(f0)
     f1, base = log_polar(f1)
-    i0, i1, ir = register_translation(f0, f1)
+    i0, i1, ir = register_translation(f0.squeeze(0), f1.squeeze(0))
     angle = 180.0 * i0.type(torch.float32) / ir.shape[-3]
     scale = base ** i1.type(torch.float32)
 
-    if angle.cpu().numpy() < -90.0:
-        angle += 180.0
-    elif angle.cpu().numpy() > 90.0:
-        angle -= 180.0
+    for no, single_angle in enumerate(angle):
+        if single_angle.cpu().numpy() < -90.0:
+            angle[no] += 180.0
+        elif single_angle.cpu().numpy() > 90.0:
+            angle[no] -= 180.0
 
     return angle, scale
 
@@ -118,9 +119,12 @@ if __name__ == '__main__':
     plt.imshow(I)
     plt.show()
 
+    rot_in = 0.6
     It = torch.tensor(I.astype(np.float32)).unsqueeze(0).cuda()
-    # Itt = tr.fft_translation(It, torch.tensor(0.1), torch.tensor(0.15))
-    Ittr = tr.fft_rotation(It, torch.tensor(1.).unsqueeze(0).cuda())
+    Itt = tr.fft_translation(It, torch.tensor(0.1).unsqueeze(0).cuda(),
+                             torch.tensor(0.15).unsqueeze(0).cuda())
+    Ittr = tr.fft_rotation(Itt, torch.tensor(rot_in).unsqueeze(0).cuda())
+    Ittrr = tr.fft_rotation(Itt, torch.tensor(-rot_in).unsqueeze(0).cuda())
 
     plt.imshow(Ittr[0, :, :].cpu().numpy())
     plt.show()
@@ -143,7 +147,9 @@ if __name__ == '__main__':
     # plt.imshow(logpolarI - logpolarIt[0, 0, :, :].cpu().numpy())
     # plt.show()
 
-    angle, scale = register_rotation(It, Ittr)
+    angle, scale = register_rotation(torch.cat([It, It], 0), torch.cat([Ittr, Ittrr], 0))
     _, scale2, angle2, _ = npreg.similarity(It[0, :, :].cpu().numpy(),
                                             Ittr[0, :, :].cpu().numpy())
     print(angle, angle2)
+    print(angle)
+    print(angle*np.pi/180.)

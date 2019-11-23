@@ -46,10 +46,10 @@ def complex_hadamard(ci1, ci2):
     x2 = ci2[..., 0]
     y2 = ci2[..., 1]
 
-    # multiplication in polar form is slow and numerically unstable in the backward pass.
     rx = x1*x2 - y1*y2
     ry = x1*y2 + y1*x2
 
+    # multiplication in polar form is slow and numerically unstable in the backward pass.
     # r1 = torch.sqrt(x1*x1 + y1*y1)
     # phi1 = torch.atan2(y1, x1)
     # r2 = torch.sqrt(x2*x2 + y2*y2)
@@ -125,13 +125,20 @@ def fft_translation(image, vx, vy):
 
 
 def fft_rotation(image, theta):
+    """
+    Rotate an image in the Frequency-Domain
+    :param image: The image to be rotated.
+    :param theta: The rotation angle in radians between 0.25 pi and -0.25 pi.
+    :return: The rotated image.
+    """
     # batch, height, width
     _, row_no_init, col_no_init = image.shape
     image = torch.nn.functional.pad(image, [col_no_init//2, col_no_init//2,
                                             row_no_init//2, row_no_init//2])
     _, row_no, col_no = image.shape
     # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
-    theta = torch.tanh(theta)*np.pi*0.25
+    # theta = torch.tanh(-theta)*np.pi*0.25
+    theta = torch.clamp(-theta, -np.pi*0.25, np.pi*0.25)
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
 

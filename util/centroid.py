@@ -36,25 +36,25 @@ if __name__ == '__main__':
     seq5 = seq[5, :, :, :]
     seq10 = seq[9, :, :, :]
 
-    img_stack = torch.cat([seq0, seq5, seq10], 0)
+    img_stack = torch.cat([seq0, seq5, seq10], 0).cuda()
 
     cent = compute_2d_centroid(img_stack)
     print('seq0 centroid', cent[0])
     print('seq10m centroid', cent[2])
 
-    plt.imshow(img_stack[0])
-    plt.plot(cent[0][1], cent[0][0], 'r.')
+    plt.imshow(img_stack[0].cpu().numpy())
+    plt.plot(cent[0][1].cpu().numpy(), cent[0][0].cpu().numpy(), 'r.')
     plt.show()
-    plt.imshow(img_stack[2])
-    plt.plot(cent[2][1], cent[2][0], 'r.')
+    plt.imshow(img_stack[2].cpu().numpy())
+    plt.plot(cent[2][1].cpu().numpy(), cent[2][0].cpu().numpy(), 'r.')
     plt.show()
 
-    rot_img_stack = fft_rotation(seq10, torch.tensor([0.1, 0.2, 0.3]))
+    rot_img_stack = fft_rotation(seq10.cuda(), torch.tensor([0.1, 0.2, 0.3]).cuda())
     rot_rot_img_stack_cent = compute_2d_centroid(rot_img_stack)
     print('rotated centroid', rot_rot_img_stack_cent[-1])
-    # plt.imshow(rot_seq0[0])
-    # plt.plot(rot_cent10[1], rot_cent10[0], 'r.')
-    plt.show()
+    # plt.imshow(rot_seq0[0].cpu().numpy())
+    # plt.plot(rot_cent10[1].cpu().numpy(), rot_cent10[0].cpu().numpy(), 'r.')
+    # plt.show()
 
     # displacement
     displacement = cent - rot_rot_img_stack_cent
@@ -65,17 +65,19 @@ if __name__ == '__main__':
     trans_rot_img_stack = fft_translation(rot_img_stack, displacement[:, 1], displacement[:, 0])
     trans_rot_img_stack_cent = compute_2d_centroid(trans_rot_img_stack)
     print(trans_rot_img_stack_cent[-1])
-    plt.imshow(trans_rot_img_stack[-1])
-    plt.plot(trans_rot_img_stack_cent[-1][1], trans_rot_img_stack_cent[-1][0], 'r.')
+    plt.imshow(trans_rot_img_stack[-1].cpu().numpy())
+    plt.plot(trans_rot_img_stack_cent[-1][1].cpu().numpy(),
+             trans_rot_img_stack_cent[-1][0].cpu().numpy(), 'r.')
     plt.show()
     print('error', cent[2] - trans_rot_img_stack_cent[2])
 
 
-    plt.imshow(img_stack[1])
-    plt.plot(cent[1][1], cent[1][0], 'r.')
+    plt.imshow(img_stack[1].cpu().numpy())
+    plt.plot(cent[1][1].cpu().numpy(),
+             cent[1][0].cpu().numpy(), 'r.')
     plt.show()
-    plt.imshow(trans_rot_img_stack[1])
-    plt.plot(trans_rot_img_stack_cent[1][1], trans_rot_img_stack_cent[1][0], 'r.')
+    plt.imshow(trans_rot_img_stack[1].cpu().numpy())
+    plt.plot(trans_rot_img_stack_cent[1][1].cpu().numpy(),
+             trans_rot_img_stack_cent[1][0].cpu().numpy(), 'r.')
     plt.show()
-
 
