@@ -89,9 +89,10 @@ def torch_fft_ifft(image, phase_modification_matrix, transpose=False):
     # phase_modification_matrix = phase_modification_matrix.unsqueeze(0)
     if transpose:
         c_image = c_image.transpose(1, 2)
-    image_trans = torch.ifft(complex_hadamard(torch.fft(c_image, signal_ndim=1),
+    # print(torch.mean(complex_abs(phase_modification_matrix)))
+    image_trans = torch.ifft(complex_hadamard(torch.fft(c_image, signal_ndim=1, normalized=True),
                                               phase_modification_matrix),
-                             signal_ndim=1)
+                             signal_ndim=1, normalized=True)
     if transpose:
         image_trans = image_trans.transpose(1, 2)
     image_trans = image_trans[..., 0]
@@ -138,7 +139,7 @@ def fft_rotation(image, theta):
     _, row_no, col_no = image.shape
     # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
     # theta = torch.tanh(-theta)*np.pi*0.25
-    theta = torch.clamp(-theta, -np.pi*0.25, np.pi*0.25)
+    theta = torch.clamp(-theta, -np.pi*0.01, np.pi*0.01)
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
 

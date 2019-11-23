@@ -10,7 +10,7 @@ def compute_2d_centroid(image):
     :param image: image tensor [batch_size, height, width]
     :return: [batch_size, 2]
     """
-    image_norm = image/torch.sum(image.flatten(start_dim=1), dim=-1).unsqueeze(-1).unsqueeze(-1)
+    image_norm = image/(torch.sum(image.flatten(start_dim=1), dim=-1).unsqueeze(-1).unsqueeze(-1) + 0.0001)
     x_max, y_max = image.shape[-2:]
     x = torch.arange(0, x_max).cuda()
     y = torch.arange(0, y_max).cuda()
