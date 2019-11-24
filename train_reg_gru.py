@@ -23,11 +23,11 @@ iterations = 20000
 lr = 0.0005  # 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 # opt = torch.optim.RMSprop(cell.parameters(), lr=lr)
-grad_clip_norm = 10
+grad_clip_norm = 2
 criterion = torch.nn.MSELoss()
 writer = torch.utils.tensorboard.writer.SummaryWriter(
     comment='_rot_' + str(rotation) + '_bs_' + str(batch_size)
-            + 'clip_' + str(grad_clip_norm) + '_lr_' + str(lr)
+            + '_clip_' + str(grad_clip_norm) + '_lr_' + str(lr)
             + '_state_' + str(state_size) + '_' + type(cell).__name__)
 loss_lst = []
 grad_lst = []
