@@ -13,8 +13,8 @@ it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.5),
                                  rotation_angle_range=(rotation, rotation),
                                  global_rotation_angle_range=(rotation, rotation))
 batch_size = 600
-time = 12
-context_time = 6
+time = 10
+context_time = 4
 pred_time = 6
 state_size = 200
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
