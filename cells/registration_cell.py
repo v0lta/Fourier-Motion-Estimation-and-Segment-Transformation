@@ -105,11 +105,8 @@ class RegistrationCell(torch.nn.Module):
             rot_pred_img = fft_rotation(pred_img, rz)
             rot_pred_img_cent = compute_2d_centroid(rot_pred_img)
             displacement = cent - rot_pred_img_cent
-            displacement = displacement/(64. + 16)
-
-            pad_rot_pred_img = torch.nn.functional.pad(rot_pred_img, [16, 16, 16, 16])
-            rot_trans_pred_img = fft_translation(pad_rot_pred_img, displacement[:, 1], displacement[:, 0])
-            rot_trans_pred_img = rot_trans_pred_img[:, 16:-16, 16:-16]
+            displacement = displacement/(64. + 8)
+            rot_trans_pred_img = fft_translation(rot_pred_img, displacement[:, 1], displacement[:, 0])
 
             debug = False
             if debug:
@@ -233,10 +230,9 @@ class VelocityEstimationCell(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    it = MovingMNISTAdvancedIterator(max_velocity_scale=0.0,
-                                     initial_velocity_range=(0.0, 0.0),
-                                     rotation_angle_range=(5, 5),
-                                     global_rotation_angle_range=(5, 5))
+    it = MovingMNISTAdvancedIterator(initial_velocity_range=(0.0, 0.0),
+                                     rotation_angle_range=(2.5, 2.5),
+                                     global_rotation_angle_range=(2.5, 2.5))
     time = 7
     seq_np, motion_vectors = it.sample(5, time)
     seq_np = seq_np/255.

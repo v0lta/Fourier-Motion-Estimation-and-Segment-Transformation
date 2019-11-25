@@ -8,13 +8,14 @@ from cells.registration_cell import RegistrationCell, VelocityEstimationCell, Ga
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-rotation = 5
-it = MovingMNISTAdvancedIterator(rotation_angle_range=(-rotation, rotation),
+rotation = 2.5
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.0),
+                                 rotation_angle_range=(-rotation, rotation),
                                  global_rotation_angle_range=(rotation, rotation))
 batch_size = 200
 time = 10
-context_time = 4
-pred_time = 6
+context_time = 5
+pred_time = 5
 state_size = 200
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
