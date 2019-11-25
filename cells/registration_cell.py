@@ -93,9 +93,11 @@ class RegistrationCell(torch.nn.Module):
                 param_out = self.parameter_projection(new_state_vec)
 
             vvx, vvy, vrz = torch.unbind(param_out, dim=-1)
+            # vvx, vvy, _, _ = torch.unbind(param_out, dim=-1)
             vx += vvx
             vy += vvy
             rz += vrz
+            # rz = 0
             state_vec = new_state_vec
 
         pred_img = fft_translation(img, vx, vy)

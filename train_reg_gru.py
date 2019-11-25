@@ -8,19 +8,19 @@ from cells.registration_cell import RegistrationCell, VelocityEstimationCell, Ga
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-rotation = 4
-it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.5),
+rotation = 5
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.25),
                                  rotation_angle_range=(rotation, rotation),
                                  global_rotation_angle_range=(rotation, rotation))
 batch_size = 600
 time = 10
 context_time = 4
 pred_time = 6
-state_size = 200
+state_size = 100
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 # cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
-iterations = 5000
+iterations = 2500
 lr = 0.0005  # 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 # opt = torch.optim.RMSprop(cell.parameters(), lr=lr)
@@ -98,6 +98,11 @@ if 1:
                 cat_img_cats = torch.cat([cat_img_cats, cat_img[j]], -2)
             writer.add_image('pred_vid', cat_img_cats.unsqueeze(0)/torch.max(cat_img_cats), global_step=i)
 
+
+            if i % 500 == 0:
+                print('saving a copy at i', i)
+                pickle.dump(cell, open('./' + writer.log_dir + '/' + '_ir_' + str(i) + '_cell.pkl', 'wb'))
+                pickle.dump(seq_np, open('./' + writer.log_dir + '/' + '_ir_' + str(i) + '_last_seq.pkl', 'wb'))
 
 plt.plot(loss_lst)
 plt.show()
