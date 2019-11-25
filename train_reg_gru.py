@@ -9,22 +9,22 @@ from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
 rotation = 4
-it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 3.6),
-                                 rotation_angle_range=(-rotation, rotation),
-                                 global_rotation_angle_range=(-rotation, rotation))
-batch_size = 200
-time = 10
-context_time = 4
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.5),
+                                 rotation_angle_range=(rotation, rotation),
+                                 global_rotation_angle_range=(rotation, rotation))
+batch_size = 600
+time = 12
+context_time = 6
 pred_time = 6
 state_size = 200
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 # cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
-iterations = 20000
+iterations = 5000
 lr = 0.0005  # 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 # opt = torch.optim.RMSprop(cell.parameters(), lr=lr)
-grad_clip_norm = 2
+grad_clip_norm = 3
 criterion = torch.nn.MSELoss()
 writer = torch.utils.tensorboard.writer.SummaryWriter(
     comment='_rot_' + str(rotation) + '_bs_' + str(batch_size)

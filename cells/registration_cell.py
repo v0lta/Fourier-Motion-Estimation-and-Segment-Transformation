@@ -112,7 +112,7 @@ class RegistrationCell(torch.nn.Module):
             # move back
             rot_trans_pred_img = fft_translation(rot_pred_img, -displacement_x, -displacement_y)
 
-            debug = False
+            debug = True
             if debug:
                 print(cent, displacement_x, displacement_y)
                 print('cent', cent)
@@ -120,6 +120,7 @@ class RegistrationCell(torch.nn.Module):
                 plt.show()
 
             pred_img = torch.clamp(rot_trans_pred_img, 0., 1.)
+            # pred_img = rot_trans_pred_img
 
         new_state = (state_vec, img)
         return pred_img, new_state
@@ -251,7 +252,7 @@ if __name__ == '__main__':
         out_lst.append(img)
 
     video = torch.stack(out_lst)
-    write = np.concatenate([video.cpu().numpy(), seq_np[1:, 0]], -1)
+    write = np.concatenate([video.cpu().numpy(), seq_np[1:, 0]], -2)
     # write = np.abs(write)/np.max(np.abs(write))
     # video_writer = VideoWriter(height=64, width=128)
     # video_writer.write_video(write[:, 0, :, :], filename='net_out.mp4')
