@@ -134,12 +134,13 @@ def fft_rotation(image, theta):
     """
     # batch, height, width
     _, row_no_init, col_no_init = image.shape
-    image = torch.nn.functional.pad(image, [col_no_init, col_no_init,
-                                            row_no_init, row_no_init])
+    image = torch.nn.functional.pad(image, [col_no_init//2, col_no_init//2,
+                                            row_no_init//2, row_no_init//2])
     _, row_no, col_no = image.shape
     # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
     # theta = torch.tanh(-theta)*np.pi*0.25
-    theta = torch.clamp(-theta, -np.pi*0.01, np.pi*0.01)
+    theta = torch.clamp(theta, -5*(2*np.pi)/360, 5*(2*np.pi)/360)
+    # print('clamp', theta)
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
 
@@ -160,7 +161,7 @@ def fft_rotation(image, theta):
     phase_modification_xyz = phase_modification_x
     image_shear_xyz = torch_fft_ifft(image_shear_xy, phase_modification_xyz)
     # remove the padding
-    image_shear_xyz = image_shear_xyz[:, row_no_init:-row_no_init, col_no_init:-col_no_init]
+    image_shear_xyz = image_shear_xyz[:, row_no_init//2:-row_no_init//2, col_no_init//2:-col_no_init//2]
     return image_shear_xyz
 
 

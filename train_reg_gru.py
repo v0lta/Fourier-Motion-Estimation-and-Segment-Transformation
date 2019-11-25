@@ -15,7 +15,7 @@ batch_size = 200
 time = 10
 context_time = 4
 pred_time = 6
-state_size = 100
+state_size = 200
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 # cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
@@ -60,7 +60,7 @@ if 1:
                 prediction_video_lst.append(pimg)
 
             pred_vid = torch.stack(prediction_video_lst, dim=0)
-            prediction = torch.clamp(prediction, 0.0, 1.0)
+            pred_vid = torch.clamp(pred_vid, 0.0, 1.0)
             loss = criterion(pred_vid, prediction)
 
             # compute gradients

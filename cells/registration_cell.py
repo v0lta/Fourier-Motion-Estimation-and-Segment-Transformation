@@ -105,8 +105,24 @@ class RegistrationCell(torch.nn.Module):
             rot_pred_img = fft_rotation(pred_img, rz)
             rot_pred_img_cent = compute_2d_centroid(rot_pred_img)
             displacement = cent - rot_pred_img_cent
-            displacement = displacement/64.
-            pred_img = fft_translation(rot_pred_img, displacement[:, 1], displacement[:, 0])
+            displacement = displacement/(64. + 16)
+
+            pad_rot_pred_img = torch.nn.functional.pad(rot_pred_img, [16, 16, 16, 16])
+            rot_trans_pred_img = fft_translation(pad_rot_pred_img, displacement[:, 1], displacement[:, 0])
+            rot_trans_pred_img = rot_trans_pred_img[:, 16:-16, 16:-16]
+
+            debug = False
+            if debug:
+                print('rz', rz)
+                print('c1', cent, 'cr', rot_pred_img_cent, 'd', displacement)
+                final_cent = compute_2d_centroid(pred_img)
+                print('final_cent', final_cent)
+                print('error', cent-final_cent)
+                plt.imshow(torch.cat([pred_img, rot_pred_img, rot_trans_pred_img], -1).cpu()[0, :, :])
+                plt.show()
+
+            pred_img = torch.clamp(rot_trans_pred_img, 0., 1.)
+
         new_state = (state_vec, img)
         return pred_img, new_state
 
@@ -217,10 +233,13 @@ class VelocityEstimationCell(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    it = MovingMNISTAdvancedIterator(rotation_angle_range=(15, 15),
-                                     global_rotation_angle_range=(15, 15))
-    time = 10
+    it = MovingMNISTAdvancedIterator(max_velocity_scale=0.0,
+                                     initial_velocity_range=(0.0, 0.0),
+                                     rotation_angle_range=(5, 5),
+                                     global_rotation_angle_range=(5, 5))
+    time = 7
     seq_np, motion_vectors = it.sample(5, time)
+    seq_np = seq_np/255.
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
     cell = RegistrationCell(learn_param_net=False, rotation=True).cuda()
@@ -236,7 +255,7 @@ if __name__ == '__main__':
 
     video = torch.stack(out_lst)
     write = np.concatenate([video.cpu().numpy(), seq_np[1:, 0]], -1)
-    write = np.abs(write)/np.max(np.abs(write))
+    # write = np.abs(write)/np.max(np.abs(write))
     # video_writer = VideoWriter(height=64, width=128)
     # video_writer.write_video(write[:, 0, :, :], filename='net_out.mp4')
     write_to_figure(write[:, 0, :, :])

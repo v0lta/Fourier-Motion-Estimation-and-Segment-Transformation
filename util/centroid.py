@@ -49,7 +49,7 @@ if __name__ == '__main__':
     plt.plot(cent[2][1].cpu().numpy(), cent[2][0].cpu().numpy(), 'r.')
     plt.show()
 
-    rot_img_stack = fft_rotation(seq10.cuda(), torch.tensor([0.1, 0.2, 0.3]).cuda())
+    rot_img_stack = fft_rotation(seq10.cuda(), torch.tensor([0.5, 0.8, 1.5]).cuda())
     rot_rot_img_stack_cent = compute_2d_centroid(rot_img_stack)
     print('rotated centroid', rot_rot_img_stack_cent[-1])
     # plt.imshow(rot_seq0[0].cpu().numpy())
@@ -70,7 +70,6 @@ if __name__ == '__main__':
              trans_rot_img_stack_cent[-1][0].cpu().numpy(), 'r.')
     plt.show()
     print('error', cent[2] - trans_rot_img_stack_cent[2])
-
 
     plt.imshow(img_stack[1].cpu().numpy())
     plt.plot(cent[1][1].cpu().numpy(),
