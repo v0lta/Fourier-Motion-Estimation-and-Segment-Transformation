@@ -112,7 +112,7 @@ class RegistrationCell(torch.nn.Module):
             # move back
             rot_trans_pred_img = fft_translation(rot_pred_img, -displacement_x, -displacement_y)
 
-            debug = True
+            debug = False
             if debug:
                 print(cent, displacement_x, displacement_y)
                 print('cent', cent)
