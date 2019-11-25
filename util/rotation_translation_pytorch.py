@@ -139,7 +139,7 @@ def fft_rotation(image, theta):
     _, row_no, col_no = image.shape
     # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
     # theta = torch.tanh(-theta)*np.pi*0.25
-    theta = torch.clamp(theta, -2.5*(2*np.pi)/360, 2.5*(2*np.pi)/360)
+    theta = torch.clamp(theta, -4.*(2*np.pi)/360, 4.*(2*np.pi)/360)
     # print('clamp', theta)
     a = torch.tan(theta/2)
     b = -torch.sin(theta)

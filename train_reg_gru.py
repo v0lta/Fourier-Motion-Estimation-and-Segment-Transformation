@@ -8,14 +8,14 @@ from cells.registration_cell import RegistrationCell, VelocityEstimationCell, Ga
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-rotation = 2.5
-it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.0),
+rotation = 4
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 3.6),
                                  rotation_angle_range=(-rotation, rotation),
-                                 global_rotation_angle_range=(rotation, rotation))
+                                 global_rotation_angle_range=(-rotation, rotation))
 batch_size = 200
 time = 10
-context_time = 5
-pred_time = 5
+context_time = 4
+pred_time = 6
 state_size = 200
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
@@ -61,7 +61,7 @@ if 1:
                 prediction_video_lst.append(pimg)
 
             pred_vid = torch.stack(prediction_video_lst, dim=0)
-            pred_vid = torch.clamp(pred_vid, 0.0, 1.0)
+            # pred_vid = torch.clamp(pred_vid, 0.0, 1.0)
             loss = criterion(pred_vid, prediction)
 
             # compute gradients

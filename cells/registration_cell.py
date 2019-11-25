@@ -102,20 +102,21 @@ class RegistrationCell(torch.nn.Module):
 
         if self.rotation:
             cent = compute_2d_centroid(pred_img)
-            rot_pred_img = fft_rotation(pred_img, rz)
-            rot_pred_img_cent = compute_2d_centroid(rot_pred_img)
-            displacement = cent - rot_pred_img_cent
-            displacement = displacement/(64. + 8)
-            rot_trans_pred_img = fft_translation(rot_pred_img, displacement[:, 1], displacement[:, 0])
+            # move to the center
+            displacement_x = (32 - cent[:, 1])/64.
+            displacement_y = (32 - cent[:, 0])/64.
+
+            cent_img = fft_translation(pred_img, displacement_x, displacement_y)
+            # rotate
+            rot_pred_img = fft_rotation(cent_img, rz)
+            # move back
+            rot_trans_pred_img = fft_translation(rot_pred_img, -displacement_x, -displacement_y)
 
             debug = False
             if debug:
-                print('rz', rz)
-                print('c1', cent, 'cr', rot_pred_img_cent, 'd', displacement)
-                final_cent = compute_2d_centroid(pred_img)
-                print('final_cent', final_cent)
-                print('error', cent-final_cent)
-                plt.imshow(torch.cat([pred_img, rot_pred_img, rot_trans_pred_img], -1).cpu()[0, :, :])
+                print(cent, displacement_x, displacement_y)
+                print('cent', cent)
+                plt.imshow(torch.cat([cent_img, rot_pred_img, rot_trans_pred_img], -1).cpu()[0, :, :])
                 plt.show()
 
             pred_img = torch.clamp(rot_trans_pred_img, 0., 1.)
@@ -231,8 +232,8 @@ class VelocityEstimationCell(torch.nn.Module):
 
 if __name__ == '__main__':
     it = MovingMNISTAdvancedIterator(initial_velocity_range=(0.0, 0.0),
-                                     rotation_angle_range=(2.5, 2.5),
-                                     global_rotation_angle_range=(2.5, 2.5))
+                                     rotation_angle_range=(5, 5),
+                                     global_rotation_angle_range=(5, 5))
     time = 7
     seq_np, motion_vectors = it.sample(5, time)
     seq_np = seq_np/255.
