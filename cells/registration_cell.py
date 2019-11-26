@@ -235,8 +235,8 @@ class VelocityEstimationCell(torch.nn.Module):
 
 if __name__ == '__main__':
     it = MovingMNISTAdvancedIterator(initial_velocity_range=(0.0, 0.0),
-                                     rotation_angle_range=(5, 5),
-                                     global_rotation_angle_range=(5, 5))
+                                     rotation_angle_range=(4, 4),
+                                     global_rotation_angle_range=(4, 4))
     time = 7
     seq_np, motion_vectors = it.sample(5, time)
     seq_np = seq_np/255.

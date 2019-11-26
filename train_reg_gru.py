@@ -8,10 +8,10 @@ from cells.registration_cell import RegistrationCell, VelocityEstimationCell, Ga
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-rotation = 5
+rotation = 4
 it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.25),
-                                 rotation_angle_range=(rotation, rotation),
-                                 global_rotation_angle_range=(rotation, rotation))
+                                 rotation_angle_range=(-rotation, rotation),
+                                 global_rotation_angle_range=(-rotation, rotation))
 batch_size = 600
 time = 10
 context_time = 4
@@ -100,8 +100,8 @@ if 1:
 
             if i % 500 == 0:
                 print('saving a copy at i', i)
-                pickle.dump(cell, open('./' + writer.log_dir + '/' + '_ir_' + str(i) + '_cell.pkl', 'wb'))
-                pickle.dump(seq_np, open('./' + writer.log_dir + '/' + '_ir_' + str(i) + '_last_seq.pkl', 'wb'))
+                pickle.dump(cell, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_cell.pkl', 'wb'))
+                pickle.dump(seq_np, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_last_seq.pkl', 'wb'))
 
 plt.plot(loss_lst)
 plt.show()
