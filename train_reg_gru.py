@@ -29,7 +29,7 @@ criterion = torch.nn.MSELoss()
 writer = torch.utils.tensorboard.writer.SummaryWriter(
     comment='_rot_' + str(rotation) + '_bs_' + str(batch_size)
             + '_clip_' + str(grad_clip_norm) + '_lr_' + str(lr)
-            + '_state_' + str(state_size) + '_' + type(cell).__name__)
+            + '_state_' + str(state_size) + '_' + type(cell).__name__ + '_retest')
 loss_lst = []
 grad_lst = []
 seq_np = None
