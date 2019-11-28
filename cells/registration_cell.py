@@ -3,6 +3,7 @@ import numpy as np
 from util.rotation_translation_pytorch import fft_translation, fft_rotation
 from util.pytorch_registration import register_translation, register_rotation
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
+from cells.ConvGRU import ConvGRUCell
 from util.centroid import compute_2d_centroid
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter, write_to_figure
@@ -231,6 +232,18 @@ class VelocityEstimationCell(torch.nn.Module):
             pred_img = fft_translation(img, vx, vy)
             new_state = (state_vec, img)
         return pred_img, new_state
+
+
+class ConvGRUWrapper(torch.nn.Module):
+    """
+    Wrap a conv-GRU to work with this interface.
+    """
+    def __init__(self, state_size):
+        self.cell = torch.nn.GRUCell(64*64, state_size)
+        self.proj = torch.nn.Linear(state_size, 64*64)
+
+    def forward(self, img):
+        pass
 
 
 if __name__ == '__main__':

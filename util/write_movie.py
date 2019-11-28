@@ -44,7 +44,7 @@ def write_to_figure(video_array):
     for i in range(1, columns*rows +1 ):
         img = video_array[i-1, :, :]
         fig.add_subplot(rows, columns, i)
-        plt.imshow(img)
+        plt.imshow(img, cmap='Greys')
         plt.axis('off')
     plt.show()
 

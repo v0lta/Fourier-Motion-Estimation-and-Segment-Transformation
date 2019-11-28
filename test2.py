@@ -16,16 +16,14 @@ context_time = 4
 pred_time = 6
 reg_state_size = 100
 # gru_state_size = 512
-runs_dir = './runs/'
-log_dir_reg = 'Nov25_16-15-54_infcuda_rot_3_bs_550_clip_2_lr_0.0005_state_100_RegistrationCell'
-# log_dir_gru = 'Nov22_22-53-06_infcuda_rot_0_bs_400clip_400_lr_0.0005_state_512_GatedRecurrentUnitWrapper'
-
-reg_cell = pickle.load(open(runs_dir + log_dir_reg + '/cell.pkl', 'rb'))
+log_dir_reg = './runs/Nov25_16-15-54_infcuda_rot_3_bs_550_clip_2_lr_0.0005_state_100_RegistrationCell'
+reg_cell = pickle.load(open(log_dir_reg + '/cell.pkl', 'rb'))
+seq_np = pickle.load(open(log_dir_reg + '/last_seq.pkl', 'rb'))
 # gru_cell = pickle.load(open(runs_dir + log_dir_gru + '/cell.pkl', 'rb'))
 
 # reg_cell.rotation = False
 
-seq_np = pickle.load(open(runs_dir + log_dir_reg + '/last_seq.pkl', 'rb'))
+
 
 seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
 seq = seq/255.0
