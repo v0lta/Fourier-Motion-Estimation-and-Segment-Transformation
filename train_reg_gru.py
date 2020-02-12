@@ -103,7 +103,7 @@ if 1:
                 cat_img_cats = torch.cat([cat_img_cats, cat_img[j]], -2)
             writer.add_image('pred_vid', cat_img_cats.unsqueeze(0)/torch.max(cat_img_cats), global_step=i)
 
-            if i % 500 == 0:
+            if i % 500 == 0 and i > 0:
                 print('saving a copy at i', i)
                 pickle.dump(cell, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_cell.pkl', 'wb'))
                 pickle.dump(seq_np, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_last_seq.pkl', 'wb'))
