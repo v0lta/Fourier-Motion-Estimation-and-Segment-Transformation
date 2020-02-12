@@ -10,6 +10,6 @@ https://www.lfd.uci.edu/~gohlke/code/imreg.py.html .
 The 'rotation_translation_pytorch' module in 'util' ships my implementation of the three pass frequency domain
 approach to image translation and rotation, which inspired by the description in 
 https://tspace.library.utoronto.ca/bitstream/1807/11762/1/MQ28850.pdf . Please read the paper for more details.
-I would like to thank Hafez Farazi for helping my debugging the log-polar transformation pytorch code.
+I would like to thank Hafez Farazi for helping me debug the log-polar transformation pytorch code.
 
 To reproduce results from the paper run 'train_reg_gru.py'.
