@@ -31,12 +31,13 @@ class VideoWriter(object):
             self.time = data_array.shape[0]
             self.data_array = data_array
 
-        anim = FuncAnimation(self.fig, self._animate, init_func=self._init, frames=self.time, interval=20, blit=True,
+        anim = FuncAnimation(self.fig, self._animate, init_func=self._init,
+                             frames=self.time, interval=20, blit=True,
                              repeat=False)
         anim.save(filename, fps=5)
         plt.clf()
 
-def write_to_figure(video_array):
+def write_to_figure(video_array, labels=False):
     time = video_array.shape[0]
     fig=plt.figure(figsize=(time, 2))
     columns = video_array.shape[0]
@@ -45,7 +46,14 @@ def write_to_figure(video_array):
         img = video_array[i-1, :, :]
         fig.add_subplot(rows, columns, i)
         plt.imshow(img, cmap='Greys')
-        plt.axis('off')
+        # plt.axis('off')
+        plt.xticks([])
+        plt.yticks([])
+
+        if i == 1 and labels is True:
+            plt.text(-36, 32, 'gt')
+            plt.text(-36, 32+64, 'ect')
+            plt.text(-36, 32+64*2, 'gru')
     plt.show()
 
 

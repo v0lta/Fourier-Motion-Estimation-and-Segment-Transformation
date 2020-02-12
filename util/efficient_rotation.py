@@ -1,21 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import misc
-face = misc.face()
-I = face
-# I = I[128:(512+128), 256:(512+256)]
-I = np.mean(I, axis=-1)
-
-
-m, n = I.shape
-I = np.pad(I, ((m//2, m//2), (n//2, n//2)))
-m, n = I.shape
-plt.imshow(I)
-plt.show()
-
-theta = np.pi/3.
-a = np.tan(theta/2)
-b = - np.sin(theta)
 
 
 def fft_shear(image, row_no, col_no, angle):
@@ -29,18 +14,38 @@ def fft_shear(image, row_no, col_no, angle):
     return image_shear
 
 
+face = misc.face()
+I = face
+# I = I[128:(512+128), 256:(512+256)]
+I = np.mean(I, axis=-1)
+
+m, n = I.shape
+I = np.pad(I, ((m//2, m//2), (n//2, n//2)))
+m, n = I.shape
+plt.imshow(I)
+plt.savefig('start.pdf')
+plt.show()
+
+theta = np.pi/3.
+a = np.tan(theta/2)
+b = - np.sin(theta)
+
+print('shear parameters:', a, b)
+
 Ix = fft_shear(I, m, n, a)
 plt.imshow(Ix)
+plt.savefig('shear_a.pdf')
 plt.show()
 
 Iy = fft_shear(Ix.transpose(), n, m, b).transpose()
 plt.imshow(Iy)
+plt.savefig('shear_b.pdf')
 plt.show()
 
 If = fft_shear(Iy, m, n, a)
 plt.imshow(If)
+plt.savefig('shear_a2.pdf')
 plt.show()
-
 
 # rotate back
 teta = -np.pi/3.
@@ -49,14 +54,17 @@ b = - np.sin(teta)
 
 IIx = fft_shear(If, m, n, a)
 plt.imshow(IIx)
+plt.savefig('shear_ma.pdf')
 plt.show()
 
 IIy = fft_shear(IIx.transpose(), n, m, b).transpose()
 plt.imshow(IIy)
+plt.savefig('shear_mb.pdf')
 plt.show()
 
 IIf = fft_shear(IIy, m, n, a)
 plt.imshow(IIf)
+plt.savefig('shear_ma2.pdf')
 plt.show()
 
 print('error', np.mean(np.abs(I.flatten() - IIf.flatten())))

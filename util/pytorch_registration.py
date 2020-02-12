@@ -63,7 +63,7 @@ def log_polar(image, angles=None, radii=None):
     y = shape[1] - y
     grid = torch.stack([(x/shape[0] - 0.5)*2, (y/shape[1] - 0.5)*2], dim=-1)
     output = torch.nn.functional.grid_sample(image.unsqueeze(0),
-                                             grid.unsqueeze(0))
+                                             grid.unsqueeze(0), align_corners=False)
     # plt.imshow(output[0, 0, :, :].numpy()); plt.show()
     return output, log_base
 
@@ -103,6 +103,7 @@ def high_pass(shape):
 
 
 if __name__ == '__main__':
+    # Test the code on the scipy test image.
     from scipy import misc
     import matplotlib.pyplot as plt
     import util.numpy_registration as npreg
@@ -147,9 +148,9 @@ if __name__ == '__main__':
     # plt.imshow(logpolarI - logpolarIt[0, 0, :, :].cpu().numpy())
     # plt.show()
 
-    angle, scale = register_rotation(torch.cat([It, It], 0), torch.cat([Ittr, Ittrr], 0))
+    angle, scale = register_rotation(torch.cat([It, It], 0), torch.cat([Ittr, Ittr], 0))
     _, scale2, angle2, _ = npreg.similarity(It[0, :, :].cpu().numpy(),
                                             Ittr[0, :, :].cpu().numpy())
-    print(angle, angle2)
+    print('numpy', angle, angle2)
     print(angle)
     print(angle*np.pi/180.)

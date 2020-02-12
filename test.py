@@ -59,9 +59,10 @@ reg_pred_vid = torch.cat([context, reg_pred_vid], dim=0).detach().cpu().numpy()
 gru_pred_vid = torch.cat([context, gru_pred_vid], dim=0).detach().cpu().numpy()
 
 gt = seq[:, :, :, :].detach().cpu().numpy()
-write = np.concatenate([gt, reg_pred_vid, gru_pred_vid], -2)
+black_bar = np.ones([gt.shape[0], gt.shape[1], 1, 64])
+write = np.concatenate([gt, black_bar, reg_pred_vid, black_bar, gru_pred_vid], -2)
 for batch_no in range(write.shape[1]):
-    write_to_figure(write[:, batch_no, :, :])
+    write_to_figure(write[:, batch_no, :, :], labels=True)
     plt.show()
     if batch_no > 50:
         break

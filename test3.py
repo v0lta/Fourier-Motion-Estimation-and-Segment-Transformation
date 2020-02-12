@@ -10,8 +10,9 @@ from cells.registration_cell import RegistrationCell, VelocityEstimationCell, Ga
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 
 rotation = 4
-it = MovingMNISTAdvancedIterator(rotation_angle_range=(-rotation, rotation),
-                                 global_rotation_angle_range=(-rotation, rotation))
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(2.25, 2.25),
+                                 rotation_angle_range=(rotation, rotation),
+                                 global_rotation_angle_range=(rotation, rotation))
 batch_size = 550
 time = 10
 context_time = 4
@@ -107,9 +108,14 @@ print('mse reg-pred', np.mean(np.square(gt_pred_vid - reg_pred_vid)))
 print('mse gru-pred', np.mean(np.square(gt_pred_vid - gru_pred_vid)))
 
 gt = seq[:, :, :, :].detach().cpu().numpy()
-write = np.concatenate([gt, reg_context_pred_vid, gru_context_pred_vid], -2)
-for batch_no in range(write.shape[1]):
-    write_to_figure(write[:, batch_no, :, :])
+black_bar = np.ones([gt.shape[0], gt.shape[1], 1, 64])
+write_array = np.concatenate([gt, black_bar, reg_context_pred_vid, black_bar, gru_context_pred_vid], -2)
+black_bar = np.ones([gt.shape[0], gt.shape[1], 64, 1])
+write_video_array = np.concatenate([gt, black_bar, reg_context_pred_vid, black_bar, gru_context_pred_vid], -1)
+for batch_no in range(write_array.shape[1]):
+    video_writer = VideoWriter(height=64, width=194)
+    video_writer.write_video(write_video_array[:, batch_no, :, :], 'result' + str(batch_no) + '.mp4')
+    write_to_figure(write_array[:, batch_no, :, :], labels=True)
     plt.show()
     if batch_no > 10:
         break

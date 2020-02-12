@@ -4,12 +4,12 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter, write_to_figure
-from cells.registration_cell import RegistrationCell, VelocityEstimationCell, GatedRecurrentUnitWrapper
+from cells.registration_cell import RegistrationCell, GatedRecurrentUnitWrapper
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
 from torch.utils.tensorboard import SummaryWriter
 
-rotation = 4
-it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.25),
+rotation = 3
+it = MovingMNISTAdvancedIterator(initial_velocity_range=(1.0, 2.0),
                                  rotation_angle_range=(-rotation, rotation),
                                  global_rotation_angle_range=(-rotation, rotation))
 batch_size = 600
@@ -20,8 +20,8 @@ state_size = 100
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 # cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
-iterations = 2500
-lr = 0.0005  # 0.0005
+iterations = 10000
+lr = 0.0001  # 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 # opt = torch.optim.RMSprop(cell.parameters(), lr=lr)
 grad_clip_norm = 3
@@ -84,7 +84,8 @@ if 1:
             # apply gradients
             opt.step()
             time_end = pytime.time() - time_start
-            print('it', i, 'of', iterations, 'mse', loss.detach().cpu().numpy(), 'grad-norm', total_norm, 'it-time [s]', time_end)
+            print('it', i, 'of', iterations, 'mse', loss.detach().cpu().numpy(), 'total-grad-norm',
+                  total_norm, 'it-time [s]', time_end)
             loss_lst.append(loss.detach().cpu().numpy())
             grad_lst.append(total_norm)
             writer.add_scalar('loss', loss, global_step=i)

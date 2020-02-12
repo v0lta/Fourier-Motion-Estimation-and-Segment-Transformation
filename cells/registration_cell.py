@@ -234,28 +234,17 @@ class VelocityEstimationCell(torch.nn.Module):
         return pred_img, new_state
 
 
-class ConvGRUWrapper(torch.nn.Module):
-    """
-    Wrap a conv-GRU to work with this interface.
-    """
-    def __init__(self, state_size):
-        self.cell = torch.nn.GRUCell(64*64, state_size)
-        self.proj = torch.nn.Linear(state_size, 64*64)
-
-    def forward(self, img):
-        pass
-
 
 if __name__ == '__main__':
-    it = MovingMNISTAdvancedIterator(initial_velocity_range=(0.0, 0.0),
-                                     rotation_angle_range=(4, 4),
-                                     global_rotation_angle_range=(4, 4))
+    it = MovingMNISTAdvancedIterator(initial_velocity_range=(-1.5, -1.5),
+                                     rotation_angle_range=(0, 0),
+                                     global_rotation_angle_range=(0, 0))
     time = 7
     seq_np, motion_vectors = it.sample(5, time)
     seq_np = seq_np/255.
     seq = torch.from_numpy(seq_np[:, :, 0, :, :].astype(np.float32)).cuda()
     seq = seq[:, 0, :, :].unsqueeze(1)
-    cell = RegistrationCell(learn_param_net=False, rotation=True).cuda()
+    cell = RegistrationCell(learn_param_net=False, rotation=False).cuda()
     # cell = VelocityEstimationCell(cnn_depth_lst=[50, 50, 50]).cuda()
     # cell = GatedRecurrentUnitWrapper(state_size=100).cuda()
     out_lst = []

@@ -61,9 +61,10 @@ def complex_hadamard(ci1, ci2):
     return torch.stack([rx, ry], -1)
 
 
-def get_coords(col_no: torch.tensor):
-    coords = torch.linspace(-np.fix(col_no/2,), np.ceil(col_no/2)-1, steps=col_no).cuda()
-    shift = fft_shift(coords)
+def get_coords(col_no: int):
+    # print(type(col_no))
+    coord_space = torch.linspace(-np.fix(col_no/2,), np.ceil(col_no/2)-1, steps=col_no).cuda()
+    shift = fft_shift(coord_space)
     return shift
 
 
@@ -101,7 +102,6 @@ def torch_fft_ifft(image, phase_modification_matrix, transpose=False):
 
 def fft_translation(image, vx, vy):
     """
-
     :param image: [batch_size, height, width]
     :param vx: [batch_size]
     :param vy: [batch_size]
@@ -139,7 +139,7 @@ def fft_rotation(image, theta):
     _, row_no, col_no = image.shape
     # Restrict theta to at most 0.25pi in order to prevent the tan from blowing up.
     # theta = torch.tanh(-theta)*np.pi*0.25
-    theta = torch.clamp(theta, -4.*(2*np.pi)/360, 4.*(2*np.pi)/360)
+    theta = torch.clamp(theta, -3.*(2*np.pi)/360, 3.*(2*np.pi)/360)
     # print('clamp', theta)
     a = torch.tan(theta/2)
     b = -torch.sin(theta)
@@ -166,51 +166,53 @@ def fft_rotation(image, theta):
 
 
 if __name__ == '__main__':
+    import os
     import util.rotation_translation as np_rot_trans
-    pass
+    os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+    # print('GPU', torch.cuda.get_device_name(0))
+    #
     # coords = get_coords(10)
     # print('error coords', np.mean(np.abs(coords.cpu().numpy() - np_rot_trans.get_coords(10))))
-    #
     # shear_mat = fft_shear_matrix(torch.tensor(10), torch.tensor(10), torch.tensor(.3))
-    # shear_mat = shear_mat[:, :, 0].numpy() + 1j*shear_mat[:, :, 1].numpy()
+    # shear_mat = shear_mat[:, :, 0].cpu().numpy() + 1j*shear_mat[:, :, 1].cpu().numpy()
     # print('error shear', np.mean(np.abs(shear_mat - np_rot_trans.fft_shear_matrix(10, 10, .3))))
     #
-    # trans_mat = fft_translation_matrix(10, 10, .1)
-    # trans_mat = trans_mat[:, :, 0].numpy() + 1j*trans_mat[:, :, 1].numpy()
+    # trans_mat = fft_translation_matrix(torch.tensor(10), torch.tensor(10), torch.tensor(.1))
+    # trans_mat = trans_mat[:, :, 0].cpu().numpy() + 1j*trans_mat[:, :, 1].cpu().numpy()
     # print('error translation matrix', np.mean(np.abs(trans_mat - np_rot_trans.fft_translation_matrix(10, 10, .1))))
-    # print(torch.cuda.get_device_name(0))
-    #
-    # face = misc.face()
-    # I = face
+
+    face = misc.face()
+    I = face
     # I = I[64:(64+64), 64:(64+64)]
-    # I = np.mean(I, axis=-1)
-    # rows, cols = I.shape
-    # I = np.pad(I, ((rows//2, rows//2), (cols//2, cols//2)))
-    # m, n = I.shape
-    # plt.imshow(I)
-    # plt.show()
-    # I_tensor = torch.tensor(I).unsqueeze(0).cuda()
-    # I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1).unsqueeze(0).cuda(),
-    #                                  torch.tensor(0.15).unsqueeze(0).cuda())
-    # I_array_trans = np_rot_trans.fft_translation(I, 0.1, 0.15)
-    # plt.imshow(I_tensor_trans[0, :, :].cpu().numpy())
-    # plt.show()
-    # print('error translation', np.mean(np.abs(I_tensor_trans[:, :].numpy() - I_array_trans)))
-    # Itr = fft_rotation(I_tensor_trans, theta=torch.tensor(0.5))
-    # Iar = np_rot_trans.fft_rotation(I_array_trans, theta=0.5)
-    # plt.imshow(Itr[0, :, :].cpu().numpy())
-    # plt.show()
-    # print('error rotation', np.mean(np.abs(Itr[0, :, :].numpy() - Iar)))
-    # Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
-    # plt.imshow(Itr[0, :, :].cpu().numpy())
-    # plt.show()
-    # Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
-    # plt.imshow(Itr[0, :, :].cpu().numpy())
-    # plt.show()
-    # Itr = fft_rotation(Itr, theta=torch.tensor(0.5))
-    # plt.imshow(Itr[0, :, :].cpu().numpy())
-    # plt.show()
-    # Itr = fft_translation(Itr, vx=-.1, vy=-.15)
-    # plt.imshow(Itr[0, :, :].cpu().numpy())
-    # plt.show()
-    # print(np.mean(np.abs(I_tensor - Itr)[0, :, :].numpy()))
+    I = np.mean(I, axis=-1)
+    rows, cols = I.shape
+    I = np.pad(I, ((rows//2, rows//2), (cols//2, cols//2)))
+    m, n = I.shape
+    plt.imshow(I)
+    plt.show()
+    I_tensor = torch.tensor(I).unsqueeze(0).cuda()
+    I_tensor_trans = fft_translation(I_tensor, torch.tensor(0.1).unsqueeze(0).cuda(),
+                                     torch.tensor(0.15).unsqueeze(0).cuda())
+    I_array_trans = np_rot_trans.fft_translation(I, 0.1, 0.15)
+    plt.imshow(I_tensor_trans[0, :, :].cpu().numpy())
+    plt.show()
+    print('error translation', np.mean(np.abs(I_tensor_trans[:, :].cpu().numpy() - I_array_trans)))
+    Itr = fft_rotation(I_tensor_trans, theta=torch.tensor(0.5).unsqueeze(0).cuda())
+    Iar = np_rot_trans.fft_rotation(I_array_trans, theta=0.5)
+    plt.imshow(Itr[0, :, :].cpu().numpy())
+    plt.show()
+    print('error rotation', np.mean(np.abs(Itr[0, :, :].cpu().numpy() - Iar)))
+    Itr = fft_rotation(Itr, theta=torch.tensor(0.5).unsqueeze(0).cuda())
+    plt.imshow(Itr[0, :, :].cpu().numpy())
+    plt.show()
+    Itr = fft_rotation(Itr, theta=torch.tensor(0.5).unsqueeze(0).cuda())
+    plt.imshow(Itr[0, :, :].cpu().numpy())
+    plt.show()
+    Itr = fft_rotation(Itr, theta=torch.tensor(0.5).unsqueeze(0).cuda())
+    plt.imshow(Itr[0, :, :].cpu().numpy())
+    plt.show()
+    Itr = fft_translation(Itr, vx=torch.tensor(-.1).unsqueeze(0).cuda(),
+                          vy=torch.tensor(-.15).unsqueeze(0).cuda())
+    plt.imshow(Itr[0, :, :].cpu().numpy())
+    plt.show()
+    print(np.mean(np.abs((I_tensor - Itr).cpu().numpy())[0, :, :]))

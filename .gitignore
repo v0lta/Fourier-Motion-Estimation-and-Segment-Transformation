@@ -10,6 +10,8 @@ __pycache__/
 
 # logfiles
 log/
+runs_archive/
+runs/
 
 # Distribution / packaging
 .Python
