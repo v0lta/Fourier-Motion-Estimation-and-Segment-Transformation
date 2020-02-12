@@ -108,6 +108,13 @@ if 1:
                 pickle.dump(cell, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_cell.pkl', 'wb'))
                 pickle.dump(seq_np, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_last_seq.pkl', 'wb'))
 
+                lr /= 2
+                for param_group in opt.param_groups:
+                    param_group['lr'] = lr
+
+                writer.add_scalar('lr', loss, global_step=i)
+
+
 plt.plot(loss_lst)
 plt.show()
 plt.plot(grad_lst)
