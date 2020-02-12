@@ -102,7 +102,7 @@ if 1:
             for j in range(1, pred_time):
                 cat_img_cats = torch.cat([cat_img_cats, cat_img[j]], -2)
             writer.add_image('pred_vid', cat_img_cats.unsqueeze(0)/torch.max(cat_img_cats), global_step=i)
-
+            writer.add_scalar('lr', lr, global_step=i)
             if i % 500 == 0 and i > 0:
                 print('saving a copy at i', i)
                 pickle.dump(cell, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_cell.pkl', 'wb'))
@@ -112,7 +112,7 @@ if 1:
                 for param_group in opt.param_groups:
                     param_group['lr'] = lr
 
-                writer.add_scalar('lr', lr, global_step=i)
+
 
 
 plt.plot(loss_lst)
