@@ -1,3 +1,7 @@
+"""
+The main training script. Run this to replicate the experiments in the paper.
+"""
+
 import pickle
 import time as pytime
 import torch

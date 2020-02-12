@@ -5,11 +5,9 @@ import matplotlib.pyplot as plt
 
 
 def fft_shift(x: torch.Tensor) -> torch.Tensor:
-    '''
+    """ pytorch port of the fft shift from numpy.
     https://github.com/numpy/numpy/blob/v1.17.0/numpy/fft/helper.py#L22-L76
-    :param x:
-    :return:
-    '''
+    """
     axes = tuple(range(x.ndim))
     shift = [dim // 2 for dim in x.shape]
     return torch.roll(x, shift, axes)
@@ -38,7 +36,11 @@ def complex_abs(ci):
     return torch.sqrt(ci[..., 0]*ci[..., 0] + ci[..., 1]*ci[..., 1])
 
 
-def complex_hadamard(ci1, ci2):
+def complex_multiplication(ci1, ci2):
+    """ Multiply two complex numbers in their carthesian form.
+    :param ci1: The first complex number with the real and imaginary parts in the last dimension.
+    :param ci2: The second complex number in the same format as the first.
+    :return: The complex product of both numbers. """
     # assert ci1.shape[-1] == 2, 'we require real and imaginary part.'
     # assert ci2.shape[-1] == 2, 'we require real and imaginary part.'
     x1 = ci1[..., 0]
@@ -91,8 +93,8 @@ def torch_fft_ifft(image, phase_modification_matrix, transpose=False):
     if transpose:
         c_image = c_image.transpose(1, 2)
     # print(torch.mean(complex_abs(phase_modification_matrix)))
-    image_trans = torch.ifft(complex_hadamard(torch.fft(c_image, signal_ndim=1, normalized=True),
-                                              phase_modification_matrix),
+    image_trans = torch.ifft(complex_multiplication(torch.fft(c_image, signal_ndim=1, normalized=True),
+                                                    phase_modification_matrix),
                              signal_ndim=1, normalized=True)
     if transpose:
         image_trans = image_trans.transpose(1, 2)
@@ -101,12 +103,11 @@ def torch_fft_ifft(image, phase_modification_matrix, transpose=False):
 
 
 def fft_translation(image, vx, vy):
-    """
+    """ Translate an image left right and up-down with circular boundary conditions.
     :param image: [batch_size, height, width]
     :param vx: [batch_size]
     :param vy: [batch_size]
-    :return: The translated image.
-    """
+    :return: The translated image. """
     # batch, height, width
     _, row_no, col_no = image.shape
     phase_mtx_lst = []
@@ -126,12 +127,10 @@ def fft_translation(image, vx, vy):
 
 
 def fft_rotation(image, theta):
-    """
-    Rotate an image in the Frequency-Domain
+    """ Rotate an image in the Frequency-Domain
     :param image: The image to be rotated.
     :param theta: The rotation angle in radians between 0.25 pi and -0.25 pi.
-    :return: The rotated image.
-    """
+    :return: The rotated image. """
     # batch, height, width
     _, row_no_init, col_no_init = image.shape
     image = torch.nn.functional.pad(image, [col_no_init//2, col_no_init//2,

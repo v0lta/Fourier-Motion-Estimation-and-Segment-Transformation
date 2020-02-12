@@ -7,6 +7,7 @@ import numpy as np
 from util.rotation_translation_pytorch import complex_hadamard, fft_shift, complex_abs, complex_conj, outer
 import math
 
+
 def register_translation(image1, image2):
     """
     Register the circular translation of image1 with respect to image2 in pixels.
