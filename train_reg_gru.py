@@ -112,7 +112,7 @@ if 1:
                 for param_group in opt.param_groups:
                     param_group['lr'] = lr
 
-                writer.add_scalar('lr', loss, global_step=i)
+                writer.add_scalar('lr', lr, global_step=i)
 
 
 plt.plot(loss_lst)
