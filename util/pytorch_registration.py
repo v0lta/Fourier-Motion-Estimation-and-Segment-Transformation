@@ -4,7 +4,7 @@ Translated from by https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
 
 import torch
 import numpy as np
-from util.rotation_translation_pytorch import complex_hadamard, fft_shift, complex_abs, complex_conj, outer
+from util.rotation_translation_pytorch import complex_multiplication, fft_shift, complex_abs, complex_conj, outer
 import math
 
 
@@ -23,7 +23,7 @@ def register_translation(image1, image2):
     fft1 = torch.fft(c_image1, 2)
     fft2 = torch.fft(c_image2, 2)
 
-    gg_star = complex_hadamard(fft1, complex_conj(fft2))
+    gg_star = complex_multiplication(fft1, complex_conj(fft2))
     small_r = torch.ifft(gg_star, 2)
     abs_small_r = complex_abs(small_r)
     abs_small_r = abs_small_r.reshape([batch_size, -1])
