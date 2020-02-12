@@ -8,6 +8,9 @@ __pycache__/
 # C extensions
 *.so
 
+# pycharm .idea folder
+.idea
+
 # logfiles
 log/
 runs_archive/
