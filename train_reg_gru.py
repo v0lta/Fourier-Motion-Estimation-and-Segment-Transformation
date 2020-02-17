@@ -24,8 +24,8 @@ state_size = 100
 cell = RegistrationCell(state_size=state_size, rotation=True).cuda()
 # cell = VelocityEstimationCell(cnn_depth_lst=[10, 10, 10, 10], state_size=state_size).cuda()
 # cell = GatedRecurrentUnitWrapper(state_size=state_size).cuda()
-iterations = 10000
-lr = 0.0001  # 0.0005
+iterations = 20000
+lr = 0.0005  # 0.0005
 opt = torch.optim.Adam(cell.parameters(), lr=lr)
 # opt = torch.optim.RMSprop(cell.parameters(), lr=lr)
 grad_clip_norm = 3
@@ -108,7 +108,7 @@ if 1:
                 pickle.dump(cell, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_cell.pkl', 'wb'))
                 pickle.dump(seq_np, open('./' + writer.log_dir + '/' + 'ir_' + str(i) + '_last_seq.pkl', 'wb'))
 
-                lr /= 2
+                lr /= 1.1
                 for param_group in opt.param_groups:
                     param_group['lr'] = lr
 
