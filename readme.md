@@ -13,3 +13,5 @@ https://tspace.library.utoronto.ca/bitstream/1807/11762/1/MQ28850.pdf . Please r
 I would like to thank Hafez Farazi for helping me debug the log-polar transformation pytorch code.
 
 To reproduce results from the paper run 'train_reg_gru.py'.
+
+The code in the repositiry has been developed using pytorch version 1.4.0 on Nvidia Titan Xp cards.
