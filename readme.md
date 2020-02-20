@@ -55,8 +55,7 @@ Singapore Ministry of Education Academic Research Fund Tier 1 for funding. Morit
 like to thank Hafez Farazi for coding and Michael Weinmann writing support.
 
 ###### Example video:
-The gif below shows the true video our estimation prediction correction predictions and a vanilla GRU after  
-5000 training iterations. Please note that this is not the best possible GRU-performance, 
-the video is meant as a conceptual illustration.   
+The gif below shows the true video our estimation prediction correction and a vanilla GRU predictions.
+Please note that this is not the best possible GRU-performance, the video is meant as a conceptual illustration.   
 ![Alt Text](example_video.gif)
 
