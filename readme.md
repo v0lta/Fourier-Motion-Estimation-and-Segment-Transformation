@@ -26,4 +26,21 @@ This project has been developed using pytorch version 1.4.0 and Tensorboard 2.1.
 
 #### Known Issues
 The rotations are currently measured with respect to the image center. Working with the object center will 
-simplify things. Translation and rotation registration is limited to pixel level accuracy.
+simplify things. The recurrent cell is currently only able to deal with small rotations in a stable way.
+Translation and rotation registration is limited to pixel level accuracy.
+
+#### Related code
+If you find this project interesting the repositories at https://github.com/AIS-Bonn/FreqNet 
+and https://github.com/daniilidis-group/polar-transformer-networks may also be relevant for your work.
+
+#### Citation
+Should you find this work helpful please cite:
+```
+@inproceedings{wolter2020Object,
+     author = {Wolter, Moritz and Yao, Angela and },
+      title = {Object-centered Fourier Motion Estimation and Image Transformation for Video Prediction },
+      booktitle={28th European Symposium on Artificial Neural Networks, 
+                 Computational Intelligence and Machine Learning},
+      year={2020}
+}
+```
