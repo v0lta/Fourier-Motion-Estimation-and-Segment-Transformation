@@ -7,7 +7,8 @@ paper to learn more about the underlying math.
 
 ##### Image registration
 Pytorch_registration module 'util/pytorch_registration.py' contains code to estimate image translation and rotation.
-The pytorch implementation is based on the numpy code at https://www.lfd.uci.edu/~gohlke/code/imreg.py.html. 
+The pytorch implementation relies on phase correlation for translation and log-polar phase correlation for rotation.
+It is based on the numpy code available at https://www.lfd.uci.edu/~gohlke/code/imreg.py.html. 
 
 ##### Image transformation
 The 'util/rotation_translation_pytorch.py' module in ships my implementation of the three pass frequency domain
