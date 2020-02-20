@@ -22,6 +22,7 @@ can be found at 'cell/registration_cell.py'.
 
 ###### Reproduction:
 To reproduce results from the paper, adjust the parameters as described in the paper and run 'train_reg_gru.py'.
+For an example tensorboard logfile visualization run 'tensorboard --logdir=sample_run'.
 
 ###### Dependencies:
 This project has been developed using pytorch version 1.4.0 and Tensorboard 2.1.0 on Nvidia Titan Xp cards
