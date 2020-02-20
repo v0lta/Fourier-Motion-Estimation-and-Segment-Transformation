@@ -52,7 +52,7 @@ Should you find this work helpful please cite:
 ###### Acknowledgements:
 We thank DFG project YA 447/2-1 (Research Unit FOR 2535) and the
 Singapore Ministry of Education Academic Research Fund Tier 1 for funding. Moritz would
-like to thank Hafez Farazi for coding and Michael Weinmann writing support.
+like to thank Hafez Farazi for coding and Michael Weinmann for writing support.
 
 ###### Example video:
 The gif below shows the true video our estimation prediction correction and a vanilla GRU predictions.
