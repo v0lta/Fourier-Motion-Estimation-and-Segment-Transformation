@@ -1,8 +1,8 @@
 Fourier Motion Estimation and Segment Transformation Source code
 --------------------------------------------------------------------------------------------------------------------
 
-This repository contains the source code for the paper Object-centered Fourier Motion Estimation
-and Image Transformation for Video Prediction [ESANN 2020, to appear]. Please take a look at the 
+This repository contains the source code for the paper Object-centered Fourier Motion Estimation and
+Segment-Transformation Prediction [ESANN 2020, to appear]. Please take a look at the 
 paper to learn more about the underlying math.
 
 ###### Image registration:
