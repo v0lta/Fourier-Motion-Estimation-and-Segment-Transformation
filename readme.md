@@ -40,7 +40,7 @@ and https://github.com/daniilidis-group/polar-transformer-networks may also be r
 Should you find this work helpful please cite:
 ```
 @inproceedings{wolter2020Object,
-     author = {Wolter, Moritz and Yao, Angela and },
+     author = {Wolter, Moritz and Yao, Angela and Behnke, Sven},
       title = {Object-centered Fourier Motion Estimation and Image Transformation for Video Prediction },
       booktitle={28th European Symposium on Artificial Neural Networks, 
                  Computational Intelligence and Machine Learning},
