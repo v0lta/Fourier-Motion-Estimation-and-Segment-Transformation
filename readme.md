@@ -42,7 +42,7 @@ Should you find this work helpful please cite:
 ```
 @inproceedings{wolter2020Object,
      author = {Wolter, Moritz and Yao, Angela and Behnke, Sven},
-      title = {Object-centered Fourier Motion Estimation and Image Transformation for Video Prediction },
+      title = {Object-centered Fourier Motion Estimation and Segment-Transformation Prediction},
       booktitle={28th European Symposium on Artificial Neural Networks, 
                  Computational Intelligence and Machine Learning},
       year={2020}
