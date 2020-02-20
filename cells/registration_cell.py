@@ -3,7 +3,6 @@ import numpy as np
 from util.rotation_translation_pytorch import fft_translation, fft_rotation
 from util.pytorch_registration import register_translation, register_rotation
 from moving_mnist_pp.movingmnist_iterator import MovingMNISTAdvancedIterator
-from cells.ConvGRU import ConvGRUCell
 from util.centroid import compute_2d_centroid
 import matplotlib.pyplot as plt
 from util.write_movie import VideoWriter, write_to_figure
