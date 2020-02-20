@@ -1,4 +1,4 @@
-Fourier Motion Estimation and Image Transformation Source code
+Fourier Motion Estimation and Segment Transformation Source code
 --------------------------------------------------------------------------------------------------------------------
 
 This repository contains the source code for the paper Object-centered Fourier Motion Estimation
