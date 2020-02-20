@@ -11,8 +11,8 @@ The pytorch implementation relies on phase correlation for translation and log-p
 It is based on the numpy code available at https://www.lfd.uci.edu/~gohlke/code/imreg.py.html. 
 
 ###### Image transformation:
-The 'util/rotation_translation_pytorch.py' module in ships my implementation of the three pass frequency domain
-approach to image translation and rotation, which inspired by the description in 
+The 'util/rotation_translation_pytorch.py' module ships my implementation of the three pass frequency domain
+approach to image translation and rotation, which is inspired by the description in 
 https://tspace.library.utoronto.ca/bitstream/1807/11762/1/MQ28850.pdf.
 I would like to thank Hafez Farazi for helping me debug the log-polar transformation pytorch code.
 
