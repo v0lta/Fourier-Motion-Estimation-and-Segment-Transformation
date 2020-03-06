@@ -1,5 +1,5 @@
 """
-Translated from by https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
+Translated from https://www.lfd.uci.edu/~gohlke/code/imreg.py.html
 """
 
 import torch
