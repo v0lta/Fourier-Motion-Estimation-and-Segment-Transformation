@@ -28,7 +28,7 @@ For an example tensorboard logfile visualization run 'tensorboard --logdir=sampl
 This project has been developed using pytorch version 1.4.0 and Tensorboard 2.1.0 on Nvidia Titan Xp cards
 using late 2019 ubuntu releases.
 
-###### Known Issues:
+###### Known Issues and Future Work:
 The rotations are currently measured with respect to the image center. Working with the object center instead will 
 simplify and my stabilize things. The recurrent cell is presently only able to deal with small rotations in a stable way.
 Translation and rotation registration is limited to pixel level accuracy. The training process is not perfectly stable, it requires multiple runs to converge.
