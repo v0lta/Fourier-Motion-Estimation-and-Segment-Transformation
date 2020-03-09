@@ -31,7 +31,7 @@ using late 2019 ubuntu releases.
 ###### Known Issues:
 The rotations are currently measured with respect to the image center. Working with the object center instead will 
 simplify things. The recurrent cell is presently only able to deal with small rotations in a stable way.
-Translation and rotation registration is limited to pixel level accuracy. 
+Translation and rotation registration is limited to pixel level accuracy. The training process is not perfectly stable, it requires multiple tries to converge.
 
 ###### Related code:
 If you find this project interesting the repositories at https://github.com/AIS-Bonn/FreqNet 
