@@ -30,7 +30,7 @@ using late 2019 ubuntu releases.
 
 ###### Known issues and future work:
 The rotations are currently measured with respect to the image center. Working with the object center instead will 
-simplify and my stabilize things. The recurrent cell is presently only able to deal with small rotations in a stable way.
+simplify and may stabilize things. The recurrent cell is presently only able to deal with small rotations in a stable way.
 Translation and rotation registration is limited to pixel level accuracy. The training process is not perfectly stable, it requires multiple runs to converge.
 
 ###### Related code:
