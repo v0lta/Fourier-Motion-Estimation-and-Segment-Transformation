@@ -2,7 +2,7 @@ Fourier Motion Estimation and Segment Transformation Source code
 --------------------------------------------------------------------------------------------------------------------
 
 This repository contains the source code for the paper Object-centered Fourier Motion Estimation and
-Segment-Transformation Prediction [ESANN 2020, to appear]. Please take a look at the 
+Segment-Transformation Prediction [ESANN 2020](https://www.researchgate.net/publication/340580619_Object-centered_Fourier_Motion_Estimation_and_Segment-Transformation_Prediction)]. Please take a look at the 
 paper to learn more about the underlying math.
 
 ###### Image registration:
@@ -38,7 +38,7 @@ If you find this project interesting the repositories at https://github.com/AIS-
 and https://github.com/daniilidis-group/polar-transformer-networks may also be relevant for your work.
 
 ###### Citation:
-Should you find this work helpful please cite:
+Should you find this work helpful please cite our [ESANN 2020 paper](https://www.researchgate.net/publication/340580619_Object-centered_Fourier_Motion_Estimation_and_Segment-Transformation_Prediction):
 ```
 @inproceedings{wolter2020Object,
      author = {Wolter, Moritz and Yao, Angela and Behnke, Sven},
@@ -48,6 +48,7 @@ Should you find this work helpful please cite:
       year={2020}
 }
 ```
+
 
 ###### Acknowledgements:
 We thank Deutsche Forschungsgemeinschaft (DFG project YA 447/2-1, Research Unit FOR 2535) and the
